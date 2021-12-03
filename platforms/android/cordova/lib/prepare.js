@@ -74,8 +74,8 @@ module.exports.prepare = function (cordovaProject, options) {
 
     // Both 'useAndroidX' and 'enableJetifier' are linked together.
     if (androidXEnabled) {
-        gradlePropertiesUserConfig['android.useAndroidX'] = androidXEnabled;
-        gradlePropertiesUserConfig['android.enableJetifier'] = androidXEnabled;
+        gradlePropertiesUserConfig['android.useAndroidX'] = true;
+        gradlePropertiesUserConfig['android.enableJetifier'] = true;
     }
 
     const gradlePropertiesParser = new GradlePropertiesParser(this.locations.root);
