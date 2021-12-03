@@ -1,0 +1,17 @@
+{
+  "name": "info.android.plugin.fitness",
+  "version": "1.0.0",
+  "description": "This is used to get google fit data.",
+  "cordova": {
+    "id": "info.android.plugin.fitness",
+    "platforms": [
+      "android"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "author": "Chinmay",
+  "license": "ISC"
+}
