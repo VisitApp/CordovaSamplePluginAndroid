@@ -13,8 +13,22 @@ function onDeviceReady() {
     setTimeout(function(){
         cordova.exec(success,null,"CordovaFitnessPlugin","coolMethod",[111,222]);
     },5000);
+
+    document.getElementById('loadVisitApp').addEventListener('click',loadVisitURL);
+
 }
 
 function success(result){
     alert(result);
+}
+
+
+function loadVisitURL(){
+    console.log("loadVisitURL called");
+    cordova.exec(null,
+    null,
+    "CordavaFitnessPlugin",
+    "loadVisitWebUrl",
+    ["https://web.getvisitapp.xyz/","967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com"]
+   );
 }
