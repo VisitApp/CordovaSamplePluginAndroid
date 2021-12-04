@@ -1,35 +1,206 @@
 package info.android.plugin.fitness;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.util.Log;
+import android.webkit.WebView;
+
+import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
+import com.getvisitapp.google_fit.data.GoogleFitUtil;
+import com.getvisitapp.google_fit.data.WebAppInterface;
+
+import org.apache.cordova.BuildConfig;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+
+import io.cordova.fitnessappcordova.R;
 
 /**
  * This class echoes a string called from JavaScript.
  */
-public class CordavaFitnessPlugin extends CordovaPlugin {
+public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener{
+    WebView mWebView;
+    public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
+    public static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 490;
+    GoogleFitUtil googleFitUtil;
+    CallbackContext callbackContext;
+
+    String TAG = "mytag";
+    Activity activity;
+
+
+    @Override
+    protected void pluginInitialize() {
+        super.pluginInitialize();
+
+        Log.d(TAG, "plugin: pluginInitialize() calked");
+
+        mWebView = (WebView) webView.getEngine().getView();
+        mWebView.getSettings().setJavaScriptEnabled(true);
+        activity = (Activity) this.cordova.getActivity();
+
+
+    }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals("coolMethod")) {
-           int arg1=args.getInt(0);
-            int arg2=args.getInt(1);
+        this.callbackContext = callbackContext;
 
-            int result=arg1+arg2;
-            callbackContext.success("Result is: "+result);
+        if (action.equals("coolMethod")) {
+            Log.d(TAG, "coolMethod() called");
+            int arg1 = args.getInt(0);
+            int arg2 = args.getInt(1);
+            int result = arg1 + arg2;
+            callbackContext.success("Result: " + result);
+            return true;
+        } else if (action.equals("connectToGoogleFit")) {
+
+            Log.d(TAG, "plugin: connectToGoogleFit() called");
+
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (cordova.hasPermission(ACTIVITY_RECOGNITION)) {
+                    googleFitUtil.askForGoogleFitPermission();
+                } else {
+                    cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
+                }
+            } else {
+                googleFitUtil.askForGoogleFitPermission();
+            }
+
+            return true;
+
+        } else if (action.equals("loadVisitWebUrl")) {
+            String visitBaseUrl = args.getString(0);
+            String default_client_id = args.getString(1);
+            Log.d(TAG, "visitBaseURL: " + visitBaseUrl);
+            Log.d(TAG, "defaultClientID: " + default_client_id);
+
+
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, visitBaseUrl);
+                    mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
+                    googleFitUtil.init();
+
+                    webView.loadUrl(visitBaseUrl);
+
+                }
+            });
             return true;
         }
         return false;
     }
 
-    private void coolMethod(String message, CallbackContext callbackContext) {
-        if (message != null && message.length() > 0) {
-            callbackContext.success(message);
-        } else {
-            callbackContext.error("Expected one non-empty string argument.");
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        for (int r : grantResults) {
+            if (r == PackageManager.PERMISSION_DENIED) {
+                //this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Permission Denied"));
+                return;
+            }
         }
+
+        switch (requestCode) {
+            case ACTIVITY_RECOGNITION_REQUEST_CODE:
+                Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted");
+                cordova.setActivityResultCallback(this);
+                googleFitUtil.askForGoogleFitPermission();
+                break;
+        }
+    }
+
+
+    /**
+     * This get called from the webview when user taps on [Connect To Google Fit]
+     */
+
+    @Override
+    public void askForPermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
+        } else {
+            googleFitUtil.askForGoogleFitPermission();
+        }
+    }
+
+    /**
+     * 1A
+     * This get called after user has granted all the fitness permission
+     */
+    @Override
+    public void onFitnessPermissionGranted() {
+        Log.d(TAG, "onFitnessPermissionGranted() called");
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                googleFitUtil.fetchDataFromFit();
+            }
+        });
+    }
+
+    /**
+     * 1B
+     * This is used to load the Daily Fitness Data into the Home Tab webView.
+     */
+    @Override
+    public void loadWebUrl(String url) {
+        Log.d("mytag", "daily Fitness Data url:" + url);
+        webView.loadUrl(url);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        Log.d(TAG, "onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode);
+
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (requestCode == 4097 || requestCode == 1900) {
+            cordova.setActivityResultCallback(this);
+            googleFitUtil.onActivityResult(requestCode, resultCode, intent);
+
+        }
+
+
+    }
+
+
+    /**
+     * 2A
+     * This get used for requesting data that are to be shown in detailed graph
+     */
+
+    @Override
+    public void requestActivityData(String type, String frequency, long timestamp) {
+        Log.d(TAG, "requestActivityData() called.");
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (type != null && frequency != null) {
+                    googleFitUtil.getActivityData(type, frequency, timestamp);
+                }
+            }
+        });
+    }
+
+    /**
+     * 2B
+     * This get called when google fit return the detailed graph data that was requested previously
+     */
+
+    @Override
+    public void loadGraphDataUrl(String url) {
+        mWebView.evaluateJavascript(
+                url,
+                null
+        );
     }
 }
