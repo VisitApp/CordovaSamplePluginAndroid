@@ -4,9 +4,12 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
@@ -19,6 +22,10 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
 
 import io.cordova.fitnessappcordova.R;
 
@@ -76,21 +83,42 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             return true;
 
         } else if (action.equals("loadVisitWebUrl")) {
-            String visitBaseUrl = args.getString(0);
+            String baseUrl = args.getString(0);
             String default_client_id = args.getString(1);
-            Log.d(TAG, "visitBaseURL: " + visitBaseUrl);
+            String authToken = args.getString(2);
+            String userId = args.getString(3);
+
+            Log.d(TAG, "baseUrl: " + baseUrl);
             Log.d(TAG, "defaultClientID: " + default_client_id);
+            Log.d(TAG, "token: " + authToken);
+            Log.d(TAG, "userId: " + userId);
 
+            String magicLink = baseUrl + "star-health?token=" + authToken + "&id=" + userId;
 
+            Log.d("mytag", "magicLink: " + magicLink);
+//            Uri magicUri = Uri.parse(magicLink);
+//            Log.d("mytag", "magicUri: " + magicUri);
+
+//            mWebView.setWebViewClient(new WebViewClient() {
+//
+//                @Override
+//                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                    view.loadUrl(url);
+//                    return true;
+//                }
+//            });
+            // Load the webpage
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
 
-                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, visitBaseUrl);
+                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, baseUrl);
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
-                    webView.loadUrl(visitBaseUrl);
+//                    shouldOpenExternalUrl(magicLink);
+                   // mWebView.loadUrl(magicLink);
+                    webView.showWebPage(magicLink,false,false,new HashMap<>());
 
                 }
             });
