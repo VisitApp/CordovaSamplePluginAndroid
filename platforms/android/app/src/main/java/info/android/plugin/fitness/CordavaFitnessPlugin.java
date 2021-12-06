@@ -117,8 +117,8 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     googleFitUtil.init();
 
 //                    shouldOpenExternalUrl(magicLink);
-                   // mWebView.loadUrl(magicLink);
-                    webView.showWebPage(magicLink,false,false,new HashMap<>());
+                    // mWebView.loadUrl(magicLink);
+                    webView.showWebPage(magicLink, false, false, new HashMap<>());
 
                 }
             });
@@ -229,6 +229,17 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                 url,
                 null
         );
+    }
+
+    @Override
+    public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
+            }
+        });
     }
 
 
