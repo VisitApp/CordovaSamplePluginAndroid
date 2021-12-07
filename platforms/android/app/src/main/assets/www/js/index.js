@@ -15,7 +15,7 @@ function onDeviceReady() {
   document.getElementById('loadVisitApp').addEventListener('click',function(){
       loadVisitURL(
             "https://star-health.getvisitapp.xyz/",
-            "656388003871-74gp685kcaq5sar6dbi4oe8unm8unm4g.apps.googleusercontent.com",
+            "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com",
             "Bearer%20eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8",
             "8158")
   });
