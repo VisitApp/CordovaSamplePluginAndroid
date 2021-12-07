@@ -4,30 +4,19 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
-import com.getvisitapp.google_fit.data.WebAppInterface;
 
-import org.apache.cordova.BuildConfig;
-import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
-
-import org.apache.cordova.PluginResult;
+import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
-
-import io.cordova.fitnessappcordova.R;
 
 /**
  * This class echoes a string called from JavaScript.
@@ -49,8 +38,8 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         Log.d(TAG, "plugin: pluginInitialize() calked");
 
         mWebView = (WebView) webView.getEngine().getView();
-        mWebView.getSettings().setJavaScriptEnabled(true);
         activity = (Activity) this.cordova.getActivity();
+
 
 
     }
