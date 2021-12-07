@@ -12,21 +12,27 @@ function onDeviceReady() {
 
 
 
-    document.getElementById('loadVisitApp').addEventListener('click',loadVisitURL);
+  document.getElementById('loadVisitApp').addEventListener('click',function(){
+      loadVisitURL(
+            "https://star-health.getvisitapp.xyz/",
+            "656388003871-74gp685kcaq5sar6dbi4oe8unm8unm4g.apps.googleusercontent.com",
+            "Bearer%20eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8",
+            "8158")
+  });
 }
 
 
 
-function loadVisitURL(){
-    //console.log("loadVisitURL called");
+function loadVisitURL(baseUrl,firebase_default_client_id,user_token,userId){
+  //  console.log("loadVisitURL called");
 
     cordova.exec(null,
     null,
     "CordavaFitnessPlugin", //plugin class name
     "loadVisitWebUrl", //plugin method
-    ["https://star-health.getvisitapp.xyz/", //base url (should change based on the build type)
-    "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com", //firebase default_client_id (should change based on the build type)
-    "Bearer%20eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8", //token
-    "8158"] //userId
+    [baseUrl, //base url (should change based on the build type)
+    firebase_default_client_id, //firebase default_client_id (should change based on the build type)
+    user_token, //token
+    userId] //userId
    );
 }
