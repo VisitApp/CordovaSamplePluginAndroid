@@ -10,19 +10,17 @@ import android.webkit.WebView;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
-import com.getvisitapp.google_fit.data.WebAppInterface;
 
-import org.apache.cordova.BuildConfig;
-import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
-
-import org.apache.cordova.PluginResult;
+import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import io.cordova.fitnessappcordova.R;
+import java.util.HashMap;
 
-
+/**
+ * This class echoes a string called from JavaScript.
+ */
 public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener {
     WebView mWebView;
     public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
@@ -32,6 +30,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     String TAG = "mytag";
     Activity activity;
+    boolean dailyDataSynced;
 
     @Override
     protected void pluginInitialize() {
@@ -40,7 +39,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         Log.d(TAG, "plugin: pluginInitialize() calked");
 
         mWebView = (WebView) webView.getEngine().getView();
-        mWebView.getSettings().setJavaScriptEnabled(true);
         activity = (Activity) this.cordova.getActivity();
 
 
@@ -57,22 +55,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             int result = arg1 + arg2;
             callbackContext.success("Result: " + result);
             return true;
-        } else if (action.equals("connectToGoogleFit")) {
-
-            Log.d(TAG, "plugin: connectToGoogleFit() called");
-
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                if (cordova.hasPermission(ACTIVITY_RECOGNITION)) {
-                    googleFitUtil.askForGoogleFitPermission();
-                } else {
-                    cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
-                }
-            } else {
-                googleFitUtil.askForGoogleFitPermission();
-            }
-
-            return true;
-
         } else if (action.equals("loadVisitWebUrl")) {
             String baseUrl = args.getString(0);
             String default_client_id = args.getString(1);
@@ -87,17 +69,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             String magicLink = baseUrl + "star-health?token=" + authToken + "&id=" + userId;
 
             Log.d("mytag", "magicLink: " + magicLink);
-//            Uri magicUri = Uri.parse(magicLink);
-//            Log.d("mytag", "magicUri: " + magicUri);
 
-//            mWebView.setWebViewClient(new WebViewClient() {
-//
-//                @Override
-//                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//                    view.loadUrl(url);
-//                    return true;
-//                }
-//            });
             // Load the webpage
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -107,8 +79,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
-//                    shouldOpenExternalUrl(magicLink);
-                    // mWebView.loadUrl(magicLink);
                     webView.showWebPage(magicLink, false, false, new HashMap<>());
 
                 }
@@ -143,6 +113,9 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void askForPermissions() {
+        if(dailyDataSynced){
+            return;
+        }
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
         } else {
@@ -173,6 +146,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     public void loadWebUrl(String url) {
         Log.d("mytag", "daily Fitness Data url:" + url);
         webView.loadUrl(url);
+        dailyDataSynced=true;
     }
 
     @Override
@@ -235,4 +209,3 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
 
 }
-
