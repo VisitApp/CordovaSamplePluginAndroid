@@ -30,7 +30,8 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     String TAG = "mytag";
     Activity activity;
-    boolean dailyDataSynced;
+    boolean dailyDataSynced=false;
+    boolean syncDataWithServer=false;
 
     @Override
     protected void pluginInitialize() {
@@ -113,7 +114,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void askForPermissions() {
-        if(dailyDataSynced){
+        if (dailyDataSynced) {
             return;
         }
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -146,7 +147,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     public void loadWebUrl(String url) {
         Log.d("mytag", "daily Fitness Data url:" + url);
         webView.loadUrl(url);
-        dailyDataSynced=true;
+        dailyDataSynced = true;
     }
 
     @Override
@@ -198,13 +199,16 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
-
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
-            }
-        });
+        if (!syncDataWithServer) {
+            Log.d(TAG, "syncDataWithServer() called");
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
+                    syncDataWithServer = true;
+                }
+            });
+        }
     }
 
 
