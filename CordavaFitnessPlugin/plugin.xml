@@ -1,2 +1,39 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="info.android.plugin.fitness" version="1.0.0" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"><name>CordavaFitnessPlugin</name><js-module name="CordavaFitnessPlugin" src="www/CordavaFitnessPlugin.js"><clobbers target="cordova.plugins.CordavaFitnessPlugin" /></js-module><platform name="android"><config-file parent="/*" target="res/xml/config.xml"><feature name="CordavaFitnessPlugin"><param name="android-package" value="info.android.plugin.fitness.CordavaFitnessPlugin" /></feature></config-file><config-file parent="/*" target="AndroidManifest.xml"></config-file><source-file src="src/android/CordavaFitnessPlugin.java" target-dir="src/info/android/plugin/fitness/CordavaFitnessPlugin" /></platform></plugin>
+<plugin xmlns:android="http://schemas.android.com/apk/res/android"
+    id="info.android.plugin.fitness"
+    version="1.0.0"
+    xmlns="http://apache.org/cordova/ns/plugins/1.0">
+
+    <name>CordavaFitnessPlugin</name>
+
+    <js-module
+        name="CordavaFitnessPlugin"
+        src="www/CordavaFitnessPlugin.js">
+
+        <clobbers target="cordova.plugins.CordavaFitnessPlugin" />
+    </js-module>
+
+    <platform name="android">
+
+        <config-file
+            parent="/*"
+            target="res/xml/config.xml">
+
+            <feature name="CordavaFitnessPlugin">
+
+                <param
+                    name="android-package"
+                    value="info.android.plugin.fitness.CordavaFitnessPlugin" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+        <config-file
+            parent="/*"
+            target="AndroidManifest.xml"></config-file>
+
+        <source-file
+            src="src/android/CordavaFitnessPlugin.java"
+            target-dir="src/info/android/plugin/fitness/CordavaFitnessPlugin" />
+    </platform>
+</plugin>
