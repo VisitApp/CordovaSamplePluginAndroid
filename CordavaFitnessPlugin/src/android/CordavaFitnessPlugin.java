@@ -24,13 +24,16 @@ import java.util.HashMap;
 public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener {
     WebView mWebView;
     public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
+    public static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
     public static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 490;
+    public static final int LOCATION_PERMISSION_REQUEST_CODE = 787;
     GoogleFitUtil googleFitUtil;
     CallbackContext callbackContext;
 
     String TAG = "mytag";
     Activity activity;
-    boolean dailyDataSynced;
+    boolean dailyDataSynced = false;
+    boolean syncDataWithServer = false;
 
     @Override
     protected void pluginInitialize() {
@@ -70,10 +73,39 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
             Log.d("mytag", "magicLink: " + magicLink);
 
+
             // Load the webpage
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    FrameLayout rootLayout = (FrameLayout) activity.findViewById(android.R.id.content);
+
+                    View progressBar = LayoutInflater.from(activity).inflate(R.layout.progress_bar_layout, null);
+                    rootLayout.addView(progressBar);
+
+                    mWebView.setWebViewClient(new SystemWebViewClient((SystemWebViewEngine) webView.getEngine()) {
+                        @Override
+                        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                            super.onPageStarted(view, url, favicon);
+                            Log.d(TAG, "onPageStarted: " + url);
+
+                        }
+
+
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            super.onPageFinished(view, url);
+                            Log.d(TAG, "onPageFinished: " + url);
+                            rootLayout.removeView(progressBar);
+                        }
+
+                        @Override
+                        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                            super.onReceivedError(view, errorCode, description, failingUrl);
+                            Log.d(TAG, "onReceivedError: " + failingUrl);
+                            rootLayout.removeView(progressBar);
+                        }
+                    });
 
                     googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, baseUrl);
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
@@ -103,6 +135,8 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                 cordova.setActivityResultCallback(this);
                 googleFitUtil.askForGoogleFitPermission();
                 break;
+            case LOCATION_PERMISSION_REQUEST_CODE:
+                break;
         }
     }
 
@@ -113,7 +147,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void askForPermissions() {
-        if(dailyDataSynced){
+        if (dailyDataSynced) {
             return;
         }
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -146,7 +180,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     public void loadWebUrl(String url) {
         Log.d("mytag", "daily Fitness Data url:" + url);
         webView.loadUrl(url);
-        dailyDataSynced=true;
+        dailyDataSynced = true;
     }
 
     @Override
@@ -198,13 +232,23 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
+        if (!syncDataWithServer) {
+            Log.d(TAG, "syncDataWithServer() called");
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
+                    syncDataWithServer = true;
+                }
+            });
+        }
+    }
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
-            }
-        });
+    @Override
+    public void askForLocationPermission() {
+        if (!cordova.hasPermission(LOCATION_PERMISSION)) {
+            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
+        }
     }
 
 
