@@ -7,6 +7,10 @@
     <feature name="CordavaFitnessPlugin">
         <param name="android-package" value="info.android.plugin.fitness.CordavaFitnessPlugin" />
     </feature>
+    <feature name="StatusBar">
+        <param name="android-package" value="org.apache.cordova.statusbar.StatusBar" />
+        <param name="onload" value="true" />
+    </feature>
     <name>HelloCordova</name>
     <description>
         A sample Apache Cordova application that responds to the deviceready event.
@@ -26,4 +30,5 @@
     <allow-navigation href="https://star-health.getvisitapp.xyz/*" />
     <allow-navigation href="https://api.samuraijack.xyz/*" />
     <preference name="loglevel" value="DEBUG" />
+    <preference name="StatusBarOverlaysWebView" value="false" />
 </widget>
