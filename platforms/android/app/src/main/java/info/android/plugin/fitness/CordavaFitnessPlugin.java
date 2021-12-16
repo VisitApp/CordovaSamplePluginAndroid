@@ -11,12 +11,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-
-import androidx.core.content.ContextCompat;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
+import com.zl.reik.dilatingdotsprogressbar.DilatingDotsProgressBar;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -91,8 +89,10 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                 public void run() {
                     FrameLayout rootLayout = (FrameLayout) activity.findViewById(android.R.id.content);
 
-                    View progressBar = LayoutInflater.from(activity).inflate(R.layout.progress_bar_layout, null);
-                    rootLayout.addView(progressBar);
+                    View progressBarLayout = LayoutInflater.from(activity).inflate(R.layout.progress_bar_layout, null);
+                    DilatingDotsProgressBar progressBar = progressBarLayout.findViewById(R.id.progressBar);
+                    rootLayout.addView(progressBarLayout);
+                    progressBar.showNow();
 
                     mWebView.setWebViewClient(new SystemWebViewClient((SystemWebViewEngine) webView.getEngine()) {
                         @Override
@@ -107,14 +107,14 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                         public void onPageFinished(WebView view, String url) {
                             super.onPageFinished(view, url);
                             Log.d(TAG, "onPageFinished: " + url);
-                            rootLayout.removeView(progressBar);
+                            rootLayout.removeView(progressBarLayout);
                         }
 
                         @Override
                         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                             super.onReceivedError(view, errorCode, description, failingUrl);
                             Log.d(TAG, "onReceivedError: " + failingUrl);
-                            rootLayout.removeView(progressBar);
+                            rootLayout.removeView(progressBarLayout);
                         }
                     });
 
