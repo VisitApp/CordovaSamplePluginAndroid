@@ -15,6 +15,9 @@
     },
     "cordova-plugin-statusbar": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
+    },
+    "cordova-plugin-splashscreen": {
+      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }
   },
   "dependent_plugins": {}
