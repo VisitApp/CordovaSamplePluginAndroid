@@ -126,7 +126,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     mWebView.setDownloadListener(new DownloadListener() {
                         @Override
                         public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                            final String suggestedFilename = URLUtil.guessFileName(url, contentDisposition, mimeType);
                             Log.d("mytag", "downloadUrl:" + url + ",userAgent:" + userAgent + ",contentDisposition:" + contentDisposition + ",mimeType:" + mimeType + ",contentLength:" + contentLength);
 
                             webView.showWebPage(url, true, false, new HashMap<>());
