@@ -9,11 +9,10 @@ import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-
-import androidx.core.content.ContextCompat;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
@@ -123,6 +122,17 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     googleFitUtil.init();
 
                     webView.showWebPage(magicLink, false, false, new HashMap<>());
+
+                    mWebView.setDownloadListener(new DownloadListener() {
+                        @Override
+                        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                            final String suggestedFilename = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                            Log.d("mytag", "downloadUrl:" + url + ",userAgent:" + userAgent + ",contentDisposition:" + contentDisposition + ",mimeType:" + mimeType + ",contentLength:" + contentLength);
+
+                            webView.showWebPage(url, true, false, new HashMap<>());
+
+                        }
+                    });
 
                 }
             });
