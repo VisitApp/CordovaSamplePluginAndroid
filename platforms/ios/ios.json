@@ -1,0 +1,39 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {
+      "config.xml": {
+        "parents": {
+          "/*": [
+            {
+              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"ios-package\" value=\"CordavaFitnessPlugin\" /></feature>",
+              "count": 1
+            }
+          ]
+        }
+      }
+    }
+  },
+  "installed_plugins": {
+    "info.plugin.fitness": {
+      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
+    }
+  },
+  "dependent_plugins": {},
+  "modules": [
+    {
+      "id": "info.plugin.fitness.CordavaFitnessPlugin",
+      "file": "plugins/info.plugin.fitness/www/CordavaFitnessPlugin.js",
+      "pluginId": "info.plugin.fitness",
+      "clobbers": [
+        "cordova.plugins.CordavaFitnessPlugin"
+      ]
+    }
+  ],
+  "plugin_metadata": {
+    "info.plugin.fitness": "1.0.0"
+  }
+}

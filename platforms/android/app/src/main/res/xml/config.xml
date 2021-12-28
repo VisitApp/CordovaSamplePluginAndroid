@@ -5,7 +5,7 @@
         <param name="onload" value="true" />
     </feature>
     <feature name="CordavaFitnessPlugin">
-        <param name="android-package" value="info.android.plugin.fitness.CordavaFitnessPlugin" />
+        <param name="android-package" value="info.plugin.fitness.CordavaFitnessPlugin" />
     </feature>
     <feature name="StatusBar">
         <param name="android-package" value="org.apache.cordova.statusbar.StatusBar" />
@@ -13,6 +13,10 @@
     </feature>
     <feature name="SplashScreen">
         <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="CordavaFitnessPlugin">
+        <param name="android-package" value="info.plugin.fitness.CordavaFitnessPlugin" />
         <param name="onload" value="true" />
     </feature>
     <name>HelloCordova</name>

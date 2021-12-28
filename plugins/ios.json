@@ -1,0 +1,15 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "info.plugin.fitness": {
+      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
+    }
+  },
+  "dependent_plugins": {}
+}

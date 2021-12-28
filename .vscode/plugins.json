@@ -1,1 +1,1 @@
-{"plugins":["cordova-plugin-whitelist","info.android.plugin.fitness","cordova-plugin-statusbar","cordova-plugin-splashscreen"]}
+{"plugins":["cordova-plugin-whitelist","info.plugin.fitness","cordova-plugin-statusbar","cordova-plugin-splashscreen"]}

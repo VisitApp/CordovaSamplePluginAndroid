@@ -1,4 +1,4 @@
-package info.android.plugin.fitness;
+package info.plugin.fitness;
 
 import android.Manifest;
 import android.app.Activity;
