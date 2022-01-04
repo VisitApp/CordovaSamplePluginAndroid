@@ -113,6 +113,16 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                     webView.showWebPage(magicLink, false, false, new HashMap<>());
 
+                    mWebView.setDownloadListener(new DownloadListener() {
+                        @Override
+                        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                            Log.d("mytag", "downloadUrl:" + url + ",userAgent:" + userAgent + ",contentDisposition:" + contentDisposition + ",mimeType:" + mimeType + ",contentLength:" + contentLength);
+
+                            webView.showWebPage(url, true, false, new HashMap<>());
+
+                        }
+                    });
+
                 }
             });
             return true;
