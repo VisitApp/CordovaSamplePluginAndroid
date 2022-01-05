@@ -24,7 +24,7 @@ function loadVisitURL(baseUrl, firebase_default_client_id, user_token, userId) {
   //  console.log("loadVisitURL called");
 
   cordova.exec(
-    null,
+    success,
     null,
     "CordavaFitnessPlugin", //plugin class name
     "loadVisitWebUrl", //plugin method
@@ -36,3 +36,8 @@ function loadVisitURL(baseUrl, firebase_default_client_id, user_token, userId) {
     ] //userId
   );
 }
+
+function success(result){
+    console.log("Close the app"+result);
+    alert(result);
+};

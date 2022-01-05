@@ -5,12 +5,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.DownloadListener;
-import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
@@ -19,6 +17,7 @@ import com.getvisitapp.google_fit.data.GoogleFitUtil;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PluginResult;
 import org.apache.cordova.engine.SystemWebViewClient;
 import org.apache.cordova.engine.SystemWebViewEngine;
 import org.json.JSONArray;
@@ -38,7 +37,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     public static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 490;
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 787;
     GoogleFitUtil googleFitUtil;
-    CallbackContext callbackContext;
+    CallbackContext myCallbackContext = null;
 
     String TAG = "mytag";
     Activity activity;
@@ -54,12 +53,21 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         mWebView = (WebView) webView.getEngine().getView();
         activity = (Activity) this.cordova.getActivity();
 
+//        activity.runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                mWebView.getSettings().setJavaScriptEnabled(true);
+//            }
+//        });
+
 
     }
 
+
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        this.callbackContext = callbackContext;
+        Log.d(TAG, "Args: " + args);
+        this.myCallbackContext = callbackContext;
 
         if (action.equals("coolMethod")) {
             Log.d(TAG, "coolMethod() called");
@@ -69,6 +77,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             callbackContext.success("Result: " + result);
             return true;
         } else if (action.equals("loadVisitWebUrl")) {
+
             String baseUrl = args.getString(0);
             String default_client_id = args.getString(1);
             String authToken = args.getString(2);
@@ -119,6 +128,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                     googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, baseUrl);
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
+
                     googleFitUtil.init();
 
                     webView.showWebPage(magicLink, false, false, new HashMap<>());
@@ -135,10 +145,22 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                 }
             });
+
+
+            PluginResult result = new PluginResult(PluginResult.Status.OK, "here you can also send you message to app from plugin"); // You can send data, String, int, array, dictionary and etc
+            result.setKeepCallback(true);
+            myCallbackContext.sendPluginResult(result);
             return true;
+        } else if (action.equals("closeApp")) {
+            Log.d(TAG, "closeApp action called");
+            PluginResult result = new PluginResult(PluginResult.Status.OK, "here you can also send you message to app from plugin"); // You can send data, String, int, array, dictionary and etc
+            result.setKeepCallback(true);
+            myCallbackContext.sendPluginResult(result);
+            //return true;
         }
         return false;
     }
+
 
     @Override
     public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
@@ -167,14 +189,39 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void askForPermissions() {
-        if (dailyDataSynced) {
-            return;
-        }
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
-        } else {
-            googleFitUtil.askForGoogleFitPermission();
-        }
+
+//        try {
+//            this.execute("closeApp", "[]", callbackContext);
+////            activity.runOnUiThread(new Runnable() {
+////                @Override
+////                public void run() {
+////
+////
+////                }
+////            });
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "closeApp action called");
+                PluginResult result = new PluginResult(PluginResult.Status.OK, "here you can also send you message to app from plugin"); // You can send data, String, int, array, dictionary and etc
+                result.setKeepCallback(true);
+                myCallbackContext.sendPluginResult(result);
+            }
+        });
+
+
+//        if (dailyDataSynced) {
+//            return;
+//        }
+//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
+//        } else {
+//            googleFitUtil.askForGoogleFitPermission();
+//        }
     }
 
     /**
@@ -183,6 +230,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
      */
     @Override
     public void onFitnessPermissionGranted() {
+
         Log.d(TAG, "onFitnessPermissionGranted() called");
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -252,20 +300,21 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
-        if (!syncDataWithServer) {
-            Log.d(TAG, "syncDataWithServer() called");
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
-                    syncDataWithServer = true;
-                }
-            });
-        }
+//        if (!syncDataWithServer) {
+//            Log.d(TAG, "syncDataWithServer() called");
+//            activity.runOnUiThread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
+//                    syncDataWithServer = true;
+//                }
+//            });
+//        }
     }
 
     @Override
     public void askForLocationPermission() {
+
         if (!cordova.hasPermission(LOCATION_PERMISSION)) {
             cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
         }

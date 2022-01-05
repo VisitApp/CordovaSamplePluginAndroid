@@ -72,9 +72,9 @@ public class SplashScreen extends CordovaPlugin {
     // Helper to be compile-time compatible with both Cordova 3.x and 4.x.
     private View getView() {
         try {
-            return (View)webView.getClass().getMethod("getView").invoke(webView);
+            return (View) webView.getClass().getMethod("getView").invoke(webView);
         } catch (Exception e) {
-            return (View)webView;
+            return (View) webView;
         }
     }
 
@@ -100,7 +100,7 @@ public class SplashScreen extends CordovaPlugin {
         cordova.getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getView().setVisibility(View.INVISIBLE);
+                //getView().setVisibility(View.INVISIBLE);
             }
         });
         int drawableId = getSplashId();
@@ -121,13 +121,13 @@ public class SplashScreen extends CordovaPlugin {
     /**
      * Shorter way to check value of "SplashMaintainAspectRatio" preference.
      */
-    private boolean isMaintainAspectRatio () {
+    private boolean isMaintainAspectRatio() {
         return preferences.getBoolean("SplashMaintainAspectRatio", false);
     }
 
-    private int getFadeDuration () {
+    private int getFadeDuration() {
         int fadeSplashScreenDuration = preferences.getBoolean("FadeSplashScreen", true) ?
-            preferences.getInteger("FadeSplashScreenDuration", DEFAULT_FADE_DURATION) : 0;
+                preferences.getInteger("FadeSplashScreenDuration", DEFAULT_FADE_DURATION) : 0;
 
         if (fadeSplashScreenDuration < 30) {
             // [CB-9750] This value used to be in decimal seconds, so we will assume that if someone specifies 10
@@ -219,7 +219,7 @@ public class SplashScreen extends CordovaPlugin {
     private void removeSplashScreen(final boolean forceHideImmediately) {
         cordova.getActivity().runOnUiThread(new Runnable() {
             public void run() {
-        if (splashDialog != null && splashImageView != null && splashDialog.isShowing()) {//check for non-null splashImageView, see https://issues.apache.org/jira/browse/CB-12277
+                if (splashDialog != null && splashImageView != null && splashDialog.isShowing()) {//check for non-null splashImageView, see https://issues.apache.org/jira/browse/CB-12277
                     final int fadeSplashScreenDuration = getFadeDuration();
                     // CB-10692 If the plugin is being paused/destroyed, skip the fading and hide it immediately
                     if (fadeSplashScreenDuration > 0 && forceHideImmediately == false) {
@@ -306,8 +306,7 @@ public class SplashScreen extends CordovaPlugin {
                 if (isMaintainAspectRatio()) {
                     // CENTER_CROP scale mode is equivalent to CSS "background-size:cover"
                     splashImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                }
-                else {
+                } else {
                     // FIT_XY scales image non-uniformly to fit into image view.
                     splashImageView.setScaleType(ImageView.ScaleType.FIT_XY);
                 }
@@ -370,19 +369,19 @@ public class SplashScreen extends CordovaPlugin {
 
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     String colorName = preferences.getString("SplashScreenSpinnerColor", null);
-                    if(colorName != null){
-                        int[][] states = new int[][] {
-                            new int[] { android.R.attr.state_enabled}, // enabled
-                            new int[] {-android.R.attr.state_enabled}, // disabled
-                            new int[] {-android.R.attr.state_checked}, // unchecked
-                            new int[] { android.R.attr.state_pressed}  // pressed
+                    if (colorName != null) {
+                        int[][] states = new int[][]{
+                                new int[]{android.R.attr.state_enabled}, // enabled
+                                new int[]{-android.R.attr.state_enabled}, // disabled
+                                new int[]{-android.R.attr.state_checked}, // unchecked
+                                new int[]{android.R.attr.state_pressed}  // pressed
                         };
                         int progressBarColor = Color.parseColor(colorName);
-                        int[] colors = new int[] {
-                            progressBarColor,
-                            progressBarColor,
-                            progressBarColor,
-                            progressBarColor
+                        int[] colors = new int[]{
+                                progressBarColor,
+                                progressBarColor,
+                                progressBarColor,
+                                progressBarColor
                         };
                         ColorStateList colorStateList = new ColorStateList(states, colors);
                         progressBar.setIndeterminateTintList(colorStateList);
