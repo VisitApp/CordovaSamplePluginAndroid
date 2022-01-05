@@ -2,6 +2,7 @@ package info.android.plugin.fitness;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -269,6 +270,22 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         if (!cordova.hasPermission(LOCATION_PERMISSION)) {
             cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
         }
+    }
+
+    @Override
+    public void closeVisitPWA() {
+        Log.d(TAG,"closeVisitPWA() called");
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                PackageManager packageManager = activity.getPackageManager();
+                Intent intent = packageManager.getLaunchIntentForPackage(activity.getPackageName());
+                ComponentName componentName = intent.getComponent();
+                Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+                activity.startActivity(mainIntent);
+                Runtime.getRuntime().exit(0);
+            }
+        });
     }
 
 
