@@ -14,11 +14,61 @@
             }
           ]
         }
+      },
+      "*-Info.plist": {
+        "parents": {
+          "NSHealthShareUsageDescription": [
+            {
+              "xml": "<string>App would like to access some of your health data.</string>",
+              "count": 1
+            }
+          ],
+          "NSHealthUpdateUsageDescription": [
+            {
+              "xml": "<string>App would like to access some of your health data.</string>",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "*/Entitlements-Debug.plist": {
+        "parents": {
+          "com.apple.developer.healthkit": [
+            {
+              "xml": "<true />",
+              "count": 1
+            }
+          ],
+          "com.apple.developer.healthkit.background-delivery": [
+            {
+              "xml": "<true />",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "*/Entitlements-Release.plist": {
+        "parents": {
+          "com.apple.developer.healthkit": [
+            {
+              "xml": "<true />",
+              "count": 1
+            }
+          ],
+          "com.apple.developer.healthkit.background-delivery": [
+            {
+              "xml": "<true />",
+              "count": 1
+            }
+          ]
+        }
       }
     }
   },
   "installed_plugins": {
     "info.plugin.fitness": {
+      "HEALTH_READ_PERMISSION": " ",
+      "HEALTH_WRITE_PERMISSION": " ",
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }
   },

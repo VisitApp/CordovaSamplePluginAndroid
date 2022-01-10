@@ -43,8 +43,9 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
-    <allow-intent href="itms:*" />
-    <allow-intent href="itms-apps:*" />
+    <allow-intent href="market:*" />
+    <allow-navigation href="https://star-health.getvisitapp.xyz/*" />
+    <allow-navigation href="https://api.samuraijack.xyz/*" />
     <preference name="AllowInlineMediaPlayback" value="false" />
     <preference name="BackupWebStorage" value="cloud" />
     <preference name="DisallowOverscroll" value="false" />

@@ -21,7 +21,8 @@
         <allow-navigation href="https://api.samuraijack.xyz/*" />
     </platform>
     <platform name="ios">
-        <allow-intent href="itms:*" />
-        <allow-intent href="itms-apps:*" />
+        <allow-intent href="market:*" />
+        <allow-navigation href="https://star-health.getvisitapp.xyz/*" />
+        <allow-navigation href="https://api.samuraijack.xyz/*" />
     </platform>
 </widget>

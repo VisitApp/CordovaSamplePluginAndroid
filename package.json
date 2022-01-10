@@ -25,10 +25,14 @@
       "cordova-plugin-whitelist": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-splashscreen": {},
-      "info.plugin.fitness": {}
+      "info.plugin.fitness": {
+        "HEALTH_READ_PERMISSION": " ",
+        "HEALTH_WRITE_PERMISSION": " "
+      }
     },
     "platforms": [
-      "android"
+      "android",
+      "ios"
     ]
   }
 }

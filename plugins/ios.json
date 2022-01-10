@@ -8,6 +8,8 @@
   },
   "installed_plugins": {
     "info.plugin.fitness": {
+      "HEALTH_READ_PERMISSION": " ",
+      "HEALTH_WRITE_PERMISSION": " ",
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }
   },
