@@ -61,5 +61,7 @@
 	<string>App would like to access some of your health data.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>App would like to access some of your health data.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>App would like to your location.</string>
 </dict>
 </plist>

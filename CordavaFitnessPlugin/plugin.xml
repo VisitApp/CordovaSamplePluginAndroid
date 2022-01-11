@@ -34,6 +34,10 @@
             <string>App would like to access some of your health data.</string>
         </config-file>
 
+        <config-file target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription" mode="replace">
+            <string>App would like to your location.</string>
+        </config-file>
+
         <config-file target="*/Entitlements-Debug.plist" parent="com.apple.developer.healthkit">
             <true/>
         </config-file>

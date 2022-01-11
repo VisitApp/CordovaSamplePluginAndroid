@@ -10,6 +10,9 @@ API_AVAILABLE(ios(13.0))
   // Member variables go here.
     NSString *baseUrl;
     WKWebView *webView;
+    NSCalendar* calendar;
+    NSString *gender;
+    NSUInteger bmrCaloriesPerHour;
 }
 @property (nonatomic, retain) HKHealthStore *healthStore;
 - (void)coolMethod:(CDVInvokedUrlCommand*)command;
@@ -72,13 +75,15 @@ API_AVAILABLE(ios(13.0))
         // If our device doesn't support HealthKit -> return.
         return;
     }
-    NSLog(@"requestAuthorization executed");
     NSArray *writeTypes = @[[HKSampleType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount]];
     NSArray *readTypes = @[[HKSampleType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount],
                            [HKSampleType categoryTypeForIdentifier:HKCategoryTypeIdentifierSleepAnalysis],
+                           [HKSampleType characteristicTypeForIdentifier:HKCharacteristicTypeIdentifierBiologicalSex],
                            [HKSampleType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning]];
     
-    [[CordavaFitnessPlugin sharedManager] requestAuthorizationToShareTypes:[NSSet setWithArray:writeTypes] readTypes:[NSSet setWithArray:readTypes] completion:^(BOOL success, NSError *error) {
+    [[CordavaFitnessPlugin sharedManager] requestAuthorizationToShareTypes:[NSSet setWithArray:writeTypes] readTypes:[NSSet setWithArray:readTypes]
+                                                                completion:^(BOOL success, NSError *error) {
+        NSLog(@"requestAuthorizationToShareTypes executed");
         [self canAccessHealthKit:^(BOOL value){
             if(value){
                 NSLog(@"the health kit permission granted");
@@ -94,17 +99,21 @@ API_AVAILABLE(ios(13.0))
     dispatch_group_t loadDetailsGroup=dispatch_group_create();
     __block NSString* numberOfSteps = 0;
     __block NSTimeInterval totalSleepTime = 0;
+    NSLog(@"gender is, %@",gender);
     for (int i = 0; i<2; i++) {
+        
         dispatch_group_enter(loadDetailsGroup);
         if(i==0){
             //  getting steps for current day
             [self fetchSteps:@"day" endDate:[NSDate date] callback:^(NSArray * result) {
-                numberOfSteps = [result objectAtIndex:0];
+                if([result count]>0){
+                    numberOfSteps = [result objectAtIndex:0];
+                }
                 dispatch_group_leave(loadDetailsGroup);
             }];
         }else if (i==1){
             //  getting sleep pattern for the day past
-            [self fetchSleepPattern:1 callback:^(NSArray * result) {
+            [self fetchSleepPattern:[NSDate date] frequency:@"day" callback:^(NSArray * result) {
                 if([result count]>0){
                     for (NSDictionary* item in result) {
                         NSString* sleepValue = [item valueForKey:@"value"];
@@ -116,8 +125,8 @@ API_AVAILABLE(ios(13.0))
                             NSLog(@"Sleep value is, %@, while duration is %f",sleepValue,duration);
                     }
                     }
-                    dispatch_group_leave(loadDetailsGroup);
                 }
+                dispatch_group_leave(loadDetailsGroup);
             }];
         }
     }
@@ -126,6 +135,12 @@ API_AVAILABLE(ios(13.0))
     // not block execution, the provided block will be called
     // asynchronously at a later point.
     dispatch_group_notify(loadDetailsGroup,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),^{
+        self->gender= [self readGender];
+        if([self->gender isEqualToString:@"Male"]){
+            self->bmrCaloriesPerHour = 1662 / 24;
+        }else{
+            self->bmrCaloriesPerHour = 1493 / 24;
+        }
         NSLog(@"the steps result is, %@",numberOfSteps);
         NSLog(@"total sleep time is %f",totalSleepTime);
         NSInteger sleepTime = totalSleepTime;
@@ -223,7 +238,6 @@ API_AVAILABLE(ios(13.0))
 
 
 -(void) fetchDistanceWalkingRunning:(NSString*) frequency endDate:(NSDate*) endDate callback:(void(^)(NSArray*))callback{
-    NSCalendar* calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierISO8601];
     NSDateComponents *interval = [[NSDateComponents alloc] init];
     NSDate *startDate;
     interval.day = 1;
@@ -236,7 +250,6 @@ API_AVAILABLE(ios(13.0))
                                                 toDate:endDatePeriod
                                                options:0];
     }else if ([frequency isEqualToString:@"week"]){
-//        NSDate *startOfTheWeek;
         NSTimeInterval interval;
         [calendar rangeOfUnit:NSCalendarUnitWeekOfYear
                            startDate:&startDate
@@ -297,6 +310,22 @@ API_AVAILABLE(ios(13.0))
     [[CordavaFitnessPlugin sharedManager] executeQuery:query];
 }
 
+-(bool)containsPositiveValue:(NSArray *)numberArray
+{
+    bool result = NO;
+
+    for (NSNumber *obj in numberArray)
+    {
+        if([obj integerValue])
+        {
+            result = YES;
+            break;
+        }
+    }
+
+    return result;
+}
+
 -(void) fetchHourlyDistanceWalkingRunning:(NSDate*) endDate callback:(void(^)(NSArray*))callback{
     HKQuantityType *distanceType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning];
     NSCalendar *calendar = [NSCalendar currentCalendar];
@@ -332,13 +361,15 @@ API_AVAILABLE(ios(13.0))
                 }
             }];
             int count = 0;
-            for (NSNumber* dist in data) {
-                [distanceData insertObject:dist atIndex:count];
-                count++;
-            }
-            while(count<24){
-                [distanceData insertObject:[NSNumber numberWithInt: 0] atIndex:count];
-                count++;
+            NSArray *newArray = [data filteredArrayUsingPredicate: [NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+                return ( [evaluatedObject isKindOfClass:[NSNumber class]] && ([evaluatedObject integerValue] > 0) );
+                return NO;
+            }]];
+            if([self containsPositiveValue:data]){
+                for (NSNumber* dist in data) {
+                    [distanceData insertObject:dist atIndex:count];
+                    count++;
+                }
             }
             callback(distanceData);
             NSLog(@"fetchDistanceWalkingRunning is,%@",data);
@@ -347,19 +378,30 @@ API_AVAILABLE(ios(13.0))
         [[CordavaFitnessPlugin sharedManager] executeQuery:query];
 }
 
--(void) fetchSleepPattern:(int) numberOfDays callback:(void(^)(NSArray*))callback{
-    NSCalendar *calendar = [NSCalendar currentCalendar];
-    NSDate *endDate = [NSDate date];
-    NSDate *startDate = [calendar dateByAddingUnit:NSCalendarUnitDay
-                                             value:-numberOfDays
-                                            toDate:endDate
-                                           options:0];
-    NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDate options:HKQueryOptionStrictStartDate];
+-(void) fetchSleepPattern:(NSDate *) endDate frequency:(NSString*) frequency callback:(void(^)(NSArray*))callback{
+    NSDate *startDate;
+    NSDate *endDatePeriod;
+    if([frequency isEqualToString:@"day"]){
+        NSTimeInterval interval;
+        [calendar rangeOfUnit:NSCalendarUnitDay
+                           startDate:&startDate
+                            interval:&interval
+                             forDate:endDate];
+        endDatePeriod = [startDate dateByAddingTimeInterval:interval-1];
+    }else if ([frequency isEqualToString:@"week"]){
+        NSTimeInterval interval;
+        [calendar rangeOfUnit:NSCalendarUnitWeekOfYear
+                           startDate:&startDate
+                            interval:&interval
+                             forDate:endDate];
+        endDatePeriod = [startDate dateByAddingTimeInterval:interval-1];
+    }
+    NSLog(@"startDate and endDate in fetchSleepPattern is, %@ %@",startDate,endDatePeriod);
+    NSPredicate *predicate = [HKQuery predicateForSamplesWithStartDate:startDate endDate:endDatePeriod options:HKQueryOptionStrictStartDate];
     [self fetchSleepCategorySamplesForPredicate:predicate
-                                              limit:10000
+                                              limit:HKObjectQueryNoLimit
                                          completion:^(NSArray *results, NSError *error) {
                                              if(results){
-                                                 NSLog(@"result of sleep samples: %@", results);
                                                  callback(results);
                                                  return;
                                              } else {
@@ -398,11 +440,11 @@ API_AVAILABLE(ios(13.0))
                 for (HKQuantitySample *sample in results) {
                     HKQuantity *quantity = sample.quantity;
                     double value = [quantity doubleValueForUnit:unit];
-
-                    NSTimeInterval duration = [sample.endDate timeIntervalSinceDate:sample.startDate];
-
-                    totalActivityDuration+=duration;
-                    NSLog(@"fetchQuantitySamplesOfType duration %f",duration);
+                    if(value){
+                        NSTimeInterval duration = [sample.endDate timeIntervalSinceDate:sample.startDate];
+                        totalActivityDuration+=duration;
+                        NSLog(@"fetchQuantitySamplesOfType duration %f",duration);
+                    }
                 }
                 [data addObject:[NSString stringWithFormat:@"%f",totalActivityDuration/60]];
                 completion(data, error);
@@ -422,7 +464,6 @@ API_AVAILABLE(ios(13.0))
 
 - (void) getActivityTime:(NSDate*) endDate frequency:(NSString*) frequency callback:(void(^)(NSString*))callback{
     HKQuantityType *stepCountType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
-    NSCalendar* calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierISO8601];
     NSDate *startDate;
     NSDate *endDatePeriod;
     if([frequency isEqualToString:@"day"]){
@@ -433,7 +474,6 @@ API_AVAILABLE(ios(13.0))
                              forDate:endDate];
         endDatePeriod = [startDate dateByAddingTimeInterval:interval-1];
     }else if ([frequency isEqualToString:@"week"]){
-//        NSDate *startOfTheWeek;
         NSTimeInterval interval;
         [calendar rangeOfUnit:NSCalendarUnitWeekOfYear
                            startDate:&startDate
@@ -489,15 +529,19 @@ API_AVAILABLE(ios(13.0))
         
         NSMutableArray *data = [NSMutableArray arrayWithCapacity:24];
         NSMutableArray *stepsData = [NSMutableArray arrayWithCapacity:24];
+        NSMutableArray *calorieData = [NSMutableArray arrayWithCapacity:24];
         [result enumerateStatisticsFromDate:startDate toDate:endDate withBlock:^(HKStatistics * _Nonnull result, BOOL * _Nonnull stop) {
             HKQuantity *quantity = result.sumQuantity;
             
             if (quantity) {
-                NSTimeInterval duration = [result.endDate timeIntervalSinceDate:result.startDate];
                 int value = (int)[quantity doubleValueForUnit:stepsUnit];
                 [data addObject:[NSNumber numberWithInt:value]];
+                int calories = value/21;
+                calories+=self->bmrCaloriesPerHour;
+                [calorieData addObject:[NSNumber numberWithInt:calories]];
             } else {
                 [data addObject:[NSNumber numberWithInt:0]];
+                [calorieData addObject:[NSNumber numberWithInt:0]];
             }
         }];
         int count = 0;
@@ -505,8 +549,8 @@ API_AVAILABLE(ios(13.0))
             [stepsData insertObject:steps atIndex:count];
             count++;
         }
-
-        callback(stepsData);
+        NSArray* finalData = @[stepsData, calorieData];
+        callback(finalData);
     };
    
     [[CordavaFitnessPlugin sharedManager] executeQuery:query];
@@ -524,7 +568,6 @@ API_AVAILABLE(ios(13.0))
 }
 
 -(void) fetchSteps:(NSString*) frequency endDate:(NSDate*) endDate callback:(void(^)(NSArray*))callback{
-    NSCalendar* calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierISO8601];
     NSDateComponents *interval = [[NSDateComponents alloc] init];
     NSDate *startDate;
     interval.day = 1;
@@ -536,7 +579,6 @@ API_AVAILABLE(ios(13.0))
                                                 toDate:endDatePeriod
                                                options:0];
     }else if ([frequency isEqualToString:@"week"]){
-//        NSDate *startOfTheWeek;
         NSTimeInterval interval;
         [calendar rangeOfUnit:NSCalendarUnitWeekOfYear
                            startDate:&startDate
@@ -571,27 +613,23 @@ API_AVAILABLE(ios(13.0))
             NSLog(@"*** An error occurred while calculating the statistics: %@ ***",error.localizedDescription);
         }
         NSMutableArray *data = [NSMutableArray arrayWithCapacity:1];
-        
+        NSMutableArray *calorieData = [NSMutableArray arrayWithCapacity:1];
         [results enumerateStatisticsFromDate:startDate
                                       toDate:endDatePeriod
                                    withBlock:^(HKStatistics *result, BOOL *stop) {
 
                                        HKQuantity *quantity = result.sumQuantity;
                                        if (quantity) {
-//                                           NSDate *date = result.startDate;
                                            int value = [[NSNumber numberWithInt:[quantity doubleValueForUnit:[HKUnit countUnit]]] intValue];
-                                           NSLog(@"in fetchSteps %d", value);
-//                                           NSDictionary *elem = @{
-//                                                   @"value" : value,
-//                                                   @"date" : date,
-//                                           };
-                                           
+                                           int calories = value/21;
+                                           calories+=self->bmrCaloriesPerHour;
+                                           [calorieData addObject:[NSNumber numberWithInt:calories]];
                                            [data addObject:[NSNumber numberWithInt:value]];
-                                       }else{
-                                           [data addObject:[NSNumber numberWithInt:0]];
                                        }
                                    }];
-        callback(data);
+        NSLog(@"in stepsData and calorieData is %@,%@", data, calorieData);
+        NSArray* finalData = @[data, calorieData];
+        callback(finalData);
     };
 
     [[CordavaFitnessPlugin sharedManager] executeQuery:query];
@@ -628,10 +666,10 @@ API_AVAILABLE(ios(13.0))
     [config.userContentController
               addScriptMessageHandler:self name:@"visitIosView"];
     webView = [[WKWebView alloc] initWithFrame:self.viewController.view.frame configuration:config];
+    calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierISO8601];
+    calendar.timeZone = [NSTimeZone timeZoneWithName:@"IST"];
+    gender = @"Not Set";
     [self.viewController.view addSubview:webView];
-    
-    NSString * jsCallBack = [NSString stringWithFormat:@"myFunction()"];
-
 }
 
 - (void)loadVisitWebUrl:(CDVInvokedUrlCommand*)command {
@@ -647,6 +685,27 @@ API_AVAILABLE(ios(13.0))
     NSLog(@"Your request of loadVisitUrl is ===>>> %@", request);
 }
 
+- (NSString *)readGender
+{
+    NSError *error;
+    HKBiologicalSexObject *gen=[[CordavaFitnessPlugin sharedManager] biologicalSexWithError:&error];
+    if (gen.biologicalSex==HKBiologicalSexMale)
+    {
+        return(@"Male");
+    }
+    else if (gen.biologicalSex==HKBiologicalSexFemale)
+    {
+        return (@"Female");
+    }
+    else if (gen.biologicalSex==HKBiologicalSexOther)
+    {
+        return (@"Other");
+    }
+    else{
+        return (@"Not Set");
+    }
+}
+
 - (NSData *) arrayToJSON:(NSArray *) inputArray
 {
     NSError *error = nil;
@@ -656,12 +715,25 @@ API_AVAILABLE(ios(13.0))
     return result;
 }
 
+-(void) injectSleepData:(NSString *) javascript{
+    NSLog(@"javascript to be injected %@",javascript);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->webView evaluateJavaScript:javascript completionHandler:^(NSString *result, NSError *error) {
+            if(error != nil) {
+                NSLog(@"SomeFunction Error: %@",error);
+                return;
+            }
+            NSLog(@"SomeFunction Success %@",result);
+        }];
+    });
+}
+
 -(void) injectJavascript:(NSArray *) data type:(NSString *) type frequency:(NSString *) frequency activityTime:(NSString *) activityTime{
     NSString* hoursInDay = @"[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]";
     NSString* daysInWeek = @"[1,2,3,4,5,6,7]";
     NSString* daysInMonth = @"[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]";
     NSString* samples;
-    NSString *jsonArrayData = [data componentsJoinedByString:@","];
+    NSString *jsonArrayData;
     if([frequency isEqualToString:@"day"]){
         samples=hoursInDay;
     }else if ([frequency isEqualToString:@"week"]){
@@ -669,20 +741,56 @@ API_AVAILABLE(ios(13.0))
     }else if ([frequency isEqualToString:@"month"]){
         samples=daysInMonth;
     }
-    NSString *javascript = [NSString stringWithFormat:@"DetailedGraph.updateData(%@,[%@],'%@','%@','%@\')", samples, jsonArrayData, type,frequency, activityTime];
+    if([type isEqualToString:@"steps"] || [type isEqualToString:@"calories"]){
+        if([type isEqualToString:@"steps"]){
+            jsonArrayData = [[data objectAtIndex:0] componentsJoinedByString:@","];
+        }else{
+            jsonArrayData = [[data objectAtIndex:1] componentsJoinedByString:@","];
+        }
+    }else{
+         jsonArrayData = [data componentsJoinedByString:@","];
+    }
+    NSString *javascript = [NSString stringWithFormat:@"DetailedGraph.updateData(%@,[%@],'%@','%@','%@')", samples, jsonArrayData, type,frequency, activityTime];
     dispatch_async(dispatch_get_main_queue(), ^{
         [self->webView evaluateJavaScript:javascript completionHandler:^(NSString *result, NSError *error) {
             if(error != nil) {
-                NSLog(@"SomeFunction Error: %@",error);
+                NSLog(@"injectJavascript Error: %@",error);
                 return;
             }
-            NSLog(@" SomeFunction Success %@",result);
+            NSLog(@"injectJavascript Success: %@",javascript);
         }];
     });
 }
 
+-(NSMutableArray*) getBlankSleepWeeks:(NSUInteger) currentCount date:(NSDate*) date{
+    NSMutableArray *result = [[NSMutableArray alloc]init];
+    NSInteger value = 1;
+    NSDate *nextDayTime=date;
+    NSNumber *nextDayTimeStamp;
+    NSDateComponents *dateComponents;
+    NSString* day;
+    NSLog(@"day is, %@",day);
+    int counter =(int) currentCount;
+    while(counter<7){
+        nextDayTime = [calendar dateByAddingUnit:NSCalendarUnitDay value:value toDate:nextDayTime options:NSCalendarMatchStrictly];
+        nextDayTimeStamp = [NSNumber numberWithDouble: [@(floor([nextDayTime timeIntervalSince1970] * 1000)) longLongValue]];
+        dateComponents = [calendar components: NSCalendarUnitWeekday fromDate: nextDayTime];
+        day =calendar.shortWeekdaySymbols[dateComponents.weekday-1];
+        NSDictionary *element = @{
+                @"sleepTime" : @0,
+                @"wakeupTime" : @0,
+                @"day" : day,
+                @"startTimestamp" : nextDayTimeStamp,
+        };
+        NSLog(@"element is %@",element);
+        [result addObject:[NSMutableDictionary dictionaryWithDictionary:element]];
+        counter++;
+    }
+    return result;
+}
+
 -(void) renderGraphData:(NSString *) type frequency:(NSString *) frequency date:(NSDate *) date{
-    if([type isEqualToString:@"steps"] || [type isEqualToString:@"distance"]){
+    if([type isEqualToString:@"steps"] || [type isEqualToString:@"distance"]||[type isEqualToString:@"calories"]){
         dispatch_group_t loadDetailsGroup=dispatch_group_create();
         __block NSArray* stepsOrDistance = 0;
         __block NSString* totalActivityDuration = 0;
@@ -694,7 +802,7 @@ API_AVAILABLE(ios(13.0))
                     dispatch_group_leave(loadDetailsGroup);
                 }];
             }else if(i==1){
-                if([type isEqualToString:@"steps"]){
+                if([type isEqualToString:@"steps"] || [type isEqualToString:@"calories"]){
                     if([frequency isEqualToString:@"day"]){
                         [self fetchHourlySteps:date callback:^(NSArray * result) {
                             stepsOrDistance = result;
@@ -723,6 +831,112 @@ API_AVAILABLE(ios(13.0))
         }
         dispatch_group_notify(loadDetailsGroup,dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),^{
             [self injectJavascript:stepsOrDistance type:type frequency:frequency activityTime:totalActivityDuration];
+        });
+    }else if([type isEqualToString:@"sleep"]){
+            if([frequency isEqualToString:@"day"]){
+                [self fetchSleepPattern:date frequency:frequency callback:^(NSArray * results) {
+                NSNumber* sleepTime = 0;
+                NSNumber* wakeTime = 0;
+                int count = 0;
+                for (NSDictionary *object in results) {
+                    NSString* sleepValue = [object valueForKey:@"value"];
+                    if([sleepValue isEqualToString:@"INBED"]||[sleepValue isEqualToString:@"ASLEEP"]){
+                        if(count==0){
+                            sleepTime =
+                            [NSNumber numberWithDouble: [@(floor([[object valueForKey:@"startDate"] timeIntervalSince1970] * 1000)) longLongValue]];
+                            
+                        }
+                        wakeTime =
+                        [NSNumber numberWithDouble: [@(floor([[object valueForKey:@"endDate"] timeIntervalSince1970] * 1000)) longLongValue]];
+                        count++;
+                    }
+                }
+                NSLog(@"sleepTime and wakeTime data, %@ %@",sleepTime, wakeTime);
+                    
+                if(sleepTime && wakeTime){
+                    NSString *javascript = [NSString stringWithFormat:@"DetailedGraph.updateDailySleep(%@,%@)", sleepTime,wakeTime];
+                    [self injectSleepData:javascript];
+                }else{
+                    NSString *javascript = [NSString stringWithFormat:@"DetailedGraph.updateDailySleep('-','-')"];
+                    [self injectSleepData:javascript];
+                }
+            } ];
+            }else{
+                [self fetchSleepPattern:date frequency:frequency callback:^(NSArray * results) {
+                    NSMutableArray *data = [[NSMutableArray alloc]init];
+                    NSLog(@"weekly sleep results, %@", results);
+                    for (NSDictionary* item in results) {
+                        NSString* sleepValue = [item valueForKey:@"value"];
+                        if([sleepValue isEqualToString:@"INBED"]||[sleepValue isEqualToString:@"ASLEEP"]){
+                            NSDate* startDate = [item valueForKey:@"startDate"];
+                            NSDate* endDate = [item valueForKey:@"endDate"];
+                            NSTimeInterval interval;
+                            NSNumber* sleepTime =
+                            [NSNumber numberWithDouble: [@(floor([startDate timeIntervalSince1970] * 1000)) longLongValue]];
+                            NSNumber* wakeupTime =
+                            [NSNumber numberWithDouble: [@(floor([endDate timeIntervalSince1970] * 1000)) longLongValue]];
+                            NSLog(@"startDate before calendar function ,%@",startDate);
+                            [self->calendar rangeOfUnit:NSCalendarUnitDay
+                                               startDate:&startDate
+                                                interval:&interval
+                                                 forDate:endDate];
+                            NSLog(@"startDate after calendar function ,%@",startDate);
+                            NSNumber* startTimestamp =
+                            [NSNumber numberWithDouble: [@(floor([startDate timeIntervalSince1970] * 1000)) longLongValue]];
+                            NSDateComponents * dateComponents = [self->calendar components: NSCalendarUnitDay | NSCalendarUnitWeekday fromDate: endDate];
+                            NSString* day =self->calendar.shortWeekdaySymbols[dateComponents.weekday - 1];
+                            NSLog(@"Day name: %@", day);
+                            NSDictionary *element = @{
+                                    @"sleepTime" : sleepTime,
+                                    @"wakeupTime" : wakeupTime,
+                                    @"day" : day,
+                                    @"startTimestamp" : startTimestamp,
+                            };
+                            NSMutableDictionary *elem = [NSMutableDictionary dictionaryWithDictionary:element];
+
+                            NSLog(@"data is, ====>> %@",data);
+                            if([data count]>0){
+                                for (int i=0;i<[data count]; i++) {
+                                    NSMutableDictionary* item = [data objectAtIndex:i];
+                                    NSString* itemDay = [item objectForKey:@"day"];
+                                    NSString* itemSleepTime = [item objectForKey:@"sleepTime"];
+                                    if([itemDay isEqualToString:day]){
+                                        [elem setValue:itemSleepTime forKey:@"sleepTime"];
+                                        [data removeObjectAtIndex:i];
+                                        NSLog(@"removed day is, ====>> %@",itemDay);
+                                    }
+                                }
+                                [data addObject:elem];
+                            }else{
+                                [data addObject:elem];
+                            }
+                        }
+                    }
+                    if([data count]<7){
+                        NSMutableDictionary* item = [data objectAtIndex:[data count]-1];
+                        NSNumber* startTimeStamp = [item objectForKey:@"startTimestamp"];
+                        NSTimeInterval unixTimeStamp = [startTimeStamp doubleValue] / 1000.0;
+                        NSMutableArray* newData = [self getBlankSleepWeeks:[data count] date:[NSDate dateWithTimeIntervalSince1970:unixTimeStamp]];
+                        [data addObjectsFromArray:newData];
+                    }
+                    NSLog(@"data is, %@",data);
+                    NSData* jsonArray = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:nil ];
+                    NSString *jsonString = [[NSString alloc] initWithData:jsonArray encoding:NSUTF8StringEncoding];
+                    NSString *javascript = [NSString stringWithFormat:@"DetailedGraph.updateSleepData(JSON.stringify(%@))",  jsonString];
+                    [self injectSleepData:javascript];
+                }];
+           }
+        
+    }else{
+        NSString *javascript = @"DetailedGraph.doNothinng('')";
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self->webView evaluateJavaScript:javascript completionHandler:^(NSString *result, NSError *error) {
+                if(error != nil) {
+                    NSLog(@"SomeFunction Error: %@",error);
+                    return;
+                }
+                NSLog(@"SomeFunction Success %@",result);
+            }];
         });
     }
 }

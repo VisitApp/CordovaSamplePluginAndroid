@@ -14,8 +14,8 @@
 		302D95F114D2391D003F00A1 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 302D95EF14D2391D003F00A1 /* MainViewController.m */; };
 		302D95F214D2391D003F00A1 /* MainViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 302D95F014D2391D003F00A1 /* MainViewController.xib */; };
 		6AFF5BF91D6E424B00AB3073 /* CDVLaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6AFF5BF81D6E424B00AB3073 /* CDVLaunchScreen.storyboard */; };
-		267A138277254280BC7ED04F /* CordavaFitnessPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 9BE38C1B2636461EB7CDB5F6 /* CordavaFitnessPlugin.m */; };
-		7432852E1D3E417393FEB90E /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 492B3EB0C36D48829AF13571 /* HealthKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		04AF91C270524AC69779D165 /* CordavaFitnessPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = 37759E6791434E719E4F0FB5 /* CordavaFitnessPlugin.m */; };
+		0A5AAC7F40864ED59F440E1F /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A49334ABB73B40C688C1D719 /* HealthKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,8 +63,8 @@
 		EB87FDF41871DAF40020F90C /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = config.xml; path = ../../config.xml; sourceTree = "<group>"; };
 		ED33DF2A687741AEAF9F8254 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		F840E1F0165FE0F500CFE078 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = config.xml; path = HelloCordova/config.xml; sourceTree = "<group>"; };
-		9BE38C1B2636461EB7CDB5F6 /* CordavaFitnessPlugin.m */ = {isa = PBXFileReference; name = "CordavaFitnessPlugin.m"; path = "info.plugin.fitness/CordavaFitnessPlugin.m"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; explicitFileType = undefined; includeInIndex = 0; };
-		492B3EB0C36D48829AF13571 /* HealthKit.framework */ = {isa = PBXFileReference; name = "HealthKit.framework"; path = "System/Library/Frameworks/HealthKit.framework"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = wrapper.framework; explicitFileType = undefined; includeInIndex = 0; };
+		37759E6791434E719E4F0FB5 /* CordavaFitnessPlugin.m */ = {isa = PBXFileReference; name = "CordavaFitnessPlugin.m"; path = "info.plugin.fitness/CordavaFitnessPlugin.m"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; explicitFileType = undefined; includeInIndex = 0; };
+		A49334ABB73B40C688C1D719 /* HealthKit.framework */ = {isa = PBXFileReference; name = "HealthKit.framework"; path = "System/Library/Frameworks/HealthKit.framework"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = wrapper.framework; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,7 +73,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				301BF552109A68D80062928A /* libCordova.a in Frameworks */,
-				7432852E1D3E417393FEB90E /* HealthKit.framework in Frameworks */,
+				0A5AAC7F40864ED59F440E1F /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +144,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				492B3EB0C36D48829AF13571 /* HealthKit.framework */,
+				A49334ABB73B40C688C1D719 /* HealthKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -171,7 +171,7 @@
 		307C750510C5A3420062BCA9 /* Plugins */ = {
 			isa = PBXGroup;
 			children = (
-				9BE38C1B2636461EB7CDB5F6 /* CordavaFitnessPlugin.m */,
+				37759E6791434E719E4F0FB5 /* CordavaFitnessPlugin.m */,
 			);
 			name = Plugins;
 			path = HelloCordova/Plugins;
@@ -300,7 +300,7 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* AppDelegate.m in Sources */,
 				302D95F114D2391D003F00A1 /* MainViewController.m in Sources */,
-				267A138277254280BC7ED04F /* CordavaFitnessPlugin.m in Sources */,
+				04AF91C270524AC69779D165 /* CordavaFitnessPlugin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

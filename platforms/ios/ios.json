@@ -28,6 +28,12 @@
               "xml": "<string>App would like to access some of your health data.</string>",
               "count": 1
             }
+          ],
+          "NSLocationWhenInUseUsageDescription": [
+            {
+              "xml": "<string>App would like to your location.</string>",
+              "count": 1
+            }
           ]
         }
       },
