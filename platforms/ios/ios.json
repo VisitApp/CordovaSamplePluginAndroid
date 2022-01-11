@@ -45,12 +45,7 @@
               "count": 1
             }
           ],
-          "com.apple.developer.healthkit.background-delivery": [
-            {
-              "xml": "<true />",
-              "count": 1
-            }
-          ]
+          "com.apple.developer.healthkit.background-delivery": []
         }
       },
       "*/Entitlements-Release.plist": {
@@ -61,12 +56,7 @@
               "count": 1
             }
           ],
-          "com.apple.developer.healthkit.background-delivery": [
-            {
-              "xml": "<true />",
-              "count": 1
-            }
-          ]
+          "com.apple.developer.healthkit.background-delivery": []
         }
       }
     }

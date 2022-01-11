@@ -13,6 +13,10 @@ API_AVAILABLE(ios(13.0))
     NSCalendar* calendar;
     NSString *gender;
     NSUInteger bmrCaloriesPerHour;
+    UIStoryboard* storyboard;
+    UIViewController * viewController;
+    UIActivityIndicatorView *activityIndicator;
+    BOOL hasLoadedOnce;
 }
 @property (nonatomic, retain) HKHealthStore *healthStore;
 - (void)coolMethod:(CDVInvokedUrlCommand*)command;
@@ -90,6 +94,32 @@ API_AVAILABLE(ios(13.0))
                 [self onHealthKitPermissionGranted];
             }else{
                 NSLog(@"the health kit permission not granted");
+                UIAlertController * alert = [UIAlertController
+                                                 alertControllerWithTitle:@"Permission Denied"
+                                                 message:@"Please go to Settings>Privacy>Health and approve the required permissions"
+                                                 preferredStyle:UIAlertControllerStyleAlert];
+
+                    //Add Buttons
+
+                    UIAlertAction* yesButton = [UIAlertAction
+                                                actionWithTitle:@"Go to Settings"
+                                                style:UIAlertActionStyleDefault
+                                                handler:^(UIAlertAction * action) {
+                        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+                                                }];
+                UIAlertAction* noButton = [UIAlertAction
+                                           actionWithTitle:@"Cancel"
+                                           style:UIAlertActionStyleDefault
+                                           handler:^(UIAlertAction * action) {
+                                               //Handle no, thanks button
+                                           }];
+                //Add your buttons to alert controller
+
+                [alert addAction:yesButton];
+                [alert addAction:noButton];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self.viewController presentViewController:alert animated:false completion:nil];
+                });
             }
         }];
     }];
@@ -106,8 +136,8 @@ API_AVAILABLE(ios(13.0))
         if(i==0){
             //  getting steps for current day
             [self fetchSteps:@"day" endDate:[NSDate date] callback:^(NSArray * result) {
-                if([result count]>0){
-                    numberOfSteps = [result objectAtIndex:0];
+                if([[result objectAtIndex:0] count]>0){
+                    numberOfSteps = [[result objectAtIndex:0] objectAtIndex:0];
                 }
                 dispatch_group_leave(loadDetailsGroup);
             }];
@@ -145,13 +175,15 @@ API_AVAILABLE(ios(13.0))
         NSLog(@"total sleep time is %f",totalSleepTime);
         NSInteger sleepTime = totalSleepTime;
         NSString *request = [NSString stringWithFormat: @"%@home?fitnessPermission=true&steps=%@&sleep=%ld", self->baseUrl, numberOfSteps, (long)sleepTime];
-        NSLog(@"the url  to be loaded, %@",request);
+        NSLog(@"the url to be loaded, %@",request);
         NSURL *url = [NSURL URLWithString:request];
         //        -[WKWebView loadRequest:] must be used from main thread only
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self->webView loadRequest:[NSURLRequest requestWithURL: url]];
-        });
-        // Callback
+        if(!self->hasLoadedOnce){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self->hasLoadedOnce = true;
+                [self->webView loadRequest:[NSURLRequest requestWithURL: url]];
+            });
+        }
     });
 }
 
@@ -661,11 +693,36 @@ API_AVAILABLE(ios(13.0))
         }];
 }
 
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:NSStringFromSelector(@selector(estimatedProgress))] && object == webView) {
+        NSLog(@"%f", webView.estimatedProgress);
+        // estimatedProgress is a value from 0.0 to 1.0
+        // Update your UI here accordingly
+        if(webView.estimatedProgress>0.7){
+            [activityIndicator stopAnimating];
+            [self.viewController dismissViewControllerAnimated:NO completion:^{
+                NSLog(@"Storyboard dismissed");
+            }];
+        }
+    }
+}
+
 -(void) pluginInitialize {
+    storyboard = [UIStoryboard storyboardWithName:@"Loader" bundle:nil];
+    viewController = [storyboard instantiateInitialViewController];
+    viewController.modalPresentationStyle = 0;
+    activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+    activityIndicator.center = viewController.view.center;
+    activityIndicator.color = UIColor.linkColor;
+    [viewController.view addSubview:activityIndicator];
+    [activityIndicator startAnimating];
+    [self.viewController presentViewController:viewController animated:false completion:nil];
+    
     WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
     [config.userContentController
               addScriptMessageHandler:self name:@"visitIosView"];
     webView = [[WKWebView alloc] initWithFrame:self.viewController.view.frame configuration:config];
+    [webView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:NSKeyValueObservingOptionNew context:NULL];
     calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSCalendarIdentifierISO8601];
     calendar.timeZone = [NSTimeZone timeZoneWithName:@"IST"];
     gender = @"Not Set";
