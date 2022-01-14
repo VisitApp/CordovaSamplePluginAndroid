@@ -6,7 +6,7 @@
 #import <HealthKit/HealthKit.h>
 
 API_AVAILABLE(ios(13.0))
-@interface CordavaFitnessPlugin : CDVPlugin <WKScriptMessageHandler, WKUIDelegate> {
+@interface CordavaFitnessPlugin : CDVPlugin <WKScriptMessageHandler> {
   // Member variables go here.
     NSString *baseUrl;
     WKWebView *webView;
@@ -174,14 +174,18 @@ API_AVAILABLE(ios(13.0))
         NSLog(@"the steps result is, %@",numberOfSteps);
         NSLog(@"total sleep time is %f",totalSleepTime);
         NSInteger sleepTime = totalSleepTime;
-        NSString *request = [NSString stringWithFormat: @"%@home?fitnessPermission=true&steps=%@&sleep=%ld", self->baseUrl, numberOfSteps, (long)sleepTime];
-        NSLog(@"the url to be loaded, %@",request);
-        NSURL *url = [NSURL URLWithString:request];
         //        -[WKWebView loadRequest:] must be used from main thread only
         if(!self->hasLoadedOnce){
+            NSString *javascript = [NSString stringWithFormat:@"updateFitnessPermissions(true,'%@','%ld')",numberOfSteps, sleepTime];
             dispatch_async(dispatch_get_main_queue(), ^{
                 self->hasLoadedOnce = true;
-                [self->webView loadRequest:[NSURLRequest requestWithURL: url]];
+                [self->webView evaluateJavaScript:javascript completionHandler:^(NSString *result, NSError *error) {
+                    if(error != nil) {
+                        NSLog(@"SomeFunction Error: %@",error);
+                        return;
+                    }
+                    NSLog(@"SomeFunction Success %@",result);
+                }];
             });
         }
     });
@@ -224,11 +228,7 @@ API_AVAILABLE(ios(13.0))
 
                 for (HKCategorySample *sample in results) {
 
-                    // HKCategoryType *catType = sample.categoryType;
                     NSInteger val = sample.value;
-
-                    // HKQuantity *quantity = sample.quantity;
-                    // double value = [quantity doubleValueForUnit:unit];
 
                     NSString *valueString;
 
@@ -323,13 +323,8 @@ API_AVAILABLE(ios(13.0))
 
                                        HKQuantity *quantity = result.sumQuantity;
                                        if (quantity) {
-//                                           NSDate *date = result.startDate;
                                            int value = [[NSNumber numberWithInt:[quantity doubleValueForUnit:distanceUnit]] intValue];
                                            NSLog(@"in fetchDistanceWalkingRunning %d", value);
-//                                           NSDictionary *elem = @{
-//                                                   @"value" : value,
-//                                                   @"date" : date,
-//                                           };
                                            
                                            [data addObject:[NSNumber numberWithInt:value]];
                                        }else{
@@ -984,17 +979,6 @@ API_AVAILABLE(ios(13.0))
                 }];
            }
         
-    }else{
-        NSString *javascript = @"DetailedGraph.doNothinng('')";
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self->webView evaluateJavaScript:javascript completionHandler:^(NSString *result, NSError *error) {
-                if(error != nil) {
-                    NSLog(@"SomeFunction Error: %@",error);
-                    return;
-                }
-                NSLog(@"SomeFunction Success %@",result);
-            }];
-        });
     }
 }
 
