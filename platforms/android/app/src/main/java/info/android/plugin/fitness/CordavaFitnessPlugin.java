@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.DownloadListener;
-import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
@@ -74,25 +73,33 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             String default_client_id = args.getString(1);
             String authToken = args.getString(2);
             String userId = args.getString(3);
+            String directMagicLink = args.getString(4);
 
             Log.d(TAG, "baseUrl: " + baseUrl);
             Log.d(TAG, "defaultClientID: " + default_client_id);
             Log.d(TAG, "token: " + authToken);
             Log.d(TAG, "userId: " + userId);
+            Log.d(TAG, "directMagicLink: " + directMagicLink);
 
             String magicLink = baseUrl + "star-health?token=" + authToken + "&id=" + userId;
+
+            if (!directMagicLink.isEmpty()) {
+                magicLink = directMagicLink;
+            }
 
             Log.d("mytag", "magicLink: " + magicLink);
 
 
             // Load the webpage
+            String finalMagicLink = magicLink;
+
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     FrameLayout rootLayout = (FrameLayout) activity.findViewById(android.R.id.content);
 
                     View progressBar = LayoutInflater.from(activity).inflate(R.layout.progress_bar_layout, null);
-                    rootLayout.addView(progressBar);
+//                    rootLayout.addView(progressBar);
 
                     mWebView.setWebViewClient(new SystemWebViewClient((SystemWebViewEngine) webView.getEngine()) {
                         @Override
@@ -107,14 +114,14 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                         public void onPageFinished(WebView view, String url) {
                             super.onPageFinished(view, url);
                             Log.d(TAG, "onPageFinished: " + url);
-                            rootLayout.removeView(progressBar);
+//                            rootLayout.removeView(progressBar);
                         }
 
                         @Override
                         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                             super.onReceivedError(view, errorCode, description, failingUrl);
                             Log.d(TAG, "onReceivedError: " + failingUrl);
-                            rootLayout.removeView(progressBar);
+//                            rootLayout.removeView(progressBar);
                         }
                     });
 
@@ -122,7 +129,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
-                    webView.showWebPage(magicLink, false, false, new HashMap<>());
+                    webView.showWebPage(finalMagicLink, false, false, new HashMap<>());
 
                     mWebView.setDownloadListener(new DownloadListener() {
                         @Override
@@ -274,7 +281,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
     @Override
     public void closeVisitPWA() {
-        Log.d(TAG,"closeVisitPWA() called");
+        Log.d(TAG, "closeVisitPWA() called");
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

@@ -7,16 +7,13 @@
     "files": {}
   },
   "installed_plugins": {
-    "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
-    },
-    "info.android.plugin.fitness": {
+    "cordova-plugin-splashscreen": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
     "cordova-plugin-statusbar": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
-    "cordova-plugin-splashscreen": {
+    "info.android.plugin.fitness": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }
   },
