@@ -54,7 +54,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         mWebView = (WebView) webView.getEngine().getView();
         activity = (Activity) this.cordova.getActivity();
 
-
     }
 
     @Override
@@ -89,7 +88,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
             Log.d("mytag", "magicLink: " + magicLink);
 
-
             // Load the webpage
             String finalMagicLink = magicLink;
 
@@ -99,7 +97,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     FrameLayout rootLayout = (FrameLayout) activity.findViewById(android.R.id.content);
 
                     View progressBar = LayoutInflater.from(activity).inflate(R.layout.progress_bar_layout, null);
-//                    rootLayout.addView(progressBar);
+                    // rootLayout.addView(progressBar);
 
                     mWebView.setWebViewClient(new SystemWebViewClient((SystemWebViewEngine) webView.getEngine()) {
                         @Override
@@ -109,23 +107,23 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                         }
 
-
                         @Override
                         public void onPageFinished(WebView view, String url) {
                             super.onPageFinished(view, url);
                             Log.d(TAG, "onPageFinished: " + url);
-//                            rootLayout.removeView(progressBar);
+                            // rootLayout.removeView(progressBar);
                         }
 
                         @Override
-                        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                        public void onReceivedError(WebView view, int errorCode, String description,
+                                                    String failingUrl) {
                             super.onReceivedError(view, errorCode, description, failingUrl);
                             Log.d(TAG, "onReceivedError: " + failingUrl);
-//                            rootLayout.removeView(progressBar);
+                            // rootLayout.removeView(progressBar);
                         }
                     });
 
-                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, baseUrl);
+                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, true);
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
@@ -133,8 +131,10 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                     mWebView.setDownloadListener(new DownloadListener() {
                         @Override
-                        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                            Log.d("mytag", "downloadUrl:" + url + ",userAgent:" + userAgent + ",contentDisposition:" + contentDisposition + ",mimeType:" + mimeType + ",contentLength:" + contentLength);
+                        public void onDownloadStart(String url, String userAgent, String contentDisposition,
+                                                    String mimeType, long contentLength) {
+                            Log.d("mytag", "downloadUrl:" + url + ",userAgent:" + userAgent + ",contentDisposition:"
+                                    + contentDisposition + ",mimeType:" + mimeType + ",contentLength:" + contentLength);
 
                             webView.showWebPage(url, true, false, new HashMap<>());
 
@@ -149,10 +149,12 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     }
 
     @Override
-    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults)
+            throws JSONException {
         for (int r : grantResults) {
             if (r == PackageManager.PERMISSION_DENIED) {
-                //this.callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "Permission Denied"));
+                // this.callbackContext.sendPluginResult(new
+                // PluginResult(PluginResult.Status.ERROR, "Permission Denied"));
                 return;
             }
         }
@@ -167,7 +169,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                 break;
         }
     }
-
 
     /**
      * This get called from the webview when user taps on [Connect To Google Fit]
@@ -192,6 +193,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     @Override
     public void onFitnessPermissionGranted() {
         Log.d(TAG, "onFitnessPermissionGranted() called");
+
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -200,16 +202,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         });
     }
 
-    /**
-     * 1B
-     * This is used to load the Daily Fitness Data into the Home Tab webView.
-     */
-    @Override
-    public void loadWebUrl(String url) {
-        Log.d("mytag", "daily Fitness Data url:" + url);
-        webView.loadUrl(url);
-        dailyDataSynced = true;
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
@@ -223,9 +215,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
         }
 
-
     }
-
 
     /**
      * 2A
@@ -246,17 +236,49 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     }
 
     /**
+     * 1B
+     * This is used to load the Daily Fitness Data into the Home Tab webView.
+     */
+
+//    @Override
+//    public void loadWebUrl(String url) {
+//
+//        Log.d("mytag", "daily Fitness Data url:" + url);
+//
+//        //https://star-health.getvisitapp.xyz/home?fitnessPermission=true&steps=2727&sleep=540
+//
+//        webView.loadUrl(url);
+//        dailyDataSynced = true;
+//
+//    }
+    @Override
+    public void loadDailyFitnessData(long steps, long sleep) {
+        String finalString = "window.updateFitnessPermissions(true," + steps + "," +
+                sleep + ")";
+
+        mWebView.evaluateJavascript(
+                finalString,
+                null
+        );
+        dailyDataSynced = true;
+    }
+
+
+    /**
      * 2B
-     * This get called when google fit return the detailed graph data that was requested previously
+     * This get called when google fit return the detailed graph data that was
+     * requested previously
      */
 
     @Override
-    public void loadGraphDataUrl(String url) {
+    public void loadGraphData(String url) {
+        Log.d("mytag", "detailed graph data: " + url);
         mWebView.evaluateJavascript(
                 url,
-                null
-        );
+                null);
+        
     }
+
 
     @Override
     public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
@@ -295,5 +317,24 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         });
     }
 
+    @Override
+    public void onFitnessPermissionCancelled() {
+        Log.d("mytag", "onFitnessPermissionCancelled()");
+    }
+
+    @Override
+    public void onFitnessPermissionDenied() {
+        Log.d("mytag", "onFitnessPermissionDenied()");
+    }
+
+    @Override
+    public void setDailyFitnessDataJSON(String s) {
+        //not required
+    }
+
+    @Override
+    public void setHourlyFitnessDataJSON(String s) {
+        //not required
+    }
 
 }
