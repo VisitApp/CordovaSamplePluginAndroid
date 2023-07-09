@@ -21,7 +21,17 @@
               "count": 1
             },
             {
-              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"android-package\" value=\"info.android.plugin.fitness.CordavaFitnessPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
+              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"android-package\" value=\"info.android.plugin.CordavaFitnessPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "AndroidManifest.xml": {
+        "parents": {
+          "/manifest/application": [
+            {
+              "xml": "<activity android:label=\"New Activity\" android:name=\"info.android.activity.NewActivity\" android:theme=\"@style/Theme.AppTheme\" />",
               "count": 1
             }
           ]

@@ -23,9 +23,13 @@
 
                 <param
                     name="android-package"
-                    value="info.android.plugin.fitness.CordavaFitnessPlugin" />
+                    value="info.android.plugin.CordavaFitnessPlugin" />
                 <param name="onload" value="true" />
             </feature>
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <activity android:label="New Activity" android:name="info.android.activity.NewActivity" android:theme="@style/Theme.AppTheme"></activity>
         </config-file>
 
         <config-file
@@ -34,6 +38,10 @@
 
         <source-file
             src="src/android/CordavaFitnessPlugin.java"
-            target-dir="src/info/android/plugin/fitness/CordavaFitnessPlugin" />
+            target-dir="src/info/android/plugin" />
+
+
+        <source-file src="src/android/NewActivity.java" target-dir="src/info/android/activity" />
+        <source-file src="src/android/activity_new.xml" target-dir="res/layout"/>
     </platform>
 </plugin>

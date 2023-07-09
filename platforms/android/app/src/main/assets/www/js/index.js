@@ -21,6 +21,14 @@ function onDeviceReady() {
         "https://star-health.getvisitapp.xyz/?mluib7c=XNES26N9"
       );
     });
+
+  document
+    .getElementById("openNewActivity")
+    .addEventListener("click", function () {
+      console.log("openNewActivity called");
+
+      openNewActivity();
+    });
 }
 
 function loadVisitURL(
@@ -48,5 +56,21 @@ function loadVisitURL(
       userId,
       directMagicLink,
     ] //userId
+  );
+}
+
+function openNewActivity() {
+  //  console.log("loadVisitURL called");
+
+  cordova.exec(
+    function (winParam) {
+      console.log(winParam);
+    },
+    function (error) {
+      console.log(error);
+    },
+    "CordavaFitnessPlugin", //plugin class name
+    "new_activity", //plugin method
+    []
   );
 }

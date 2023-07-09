@@ -9,7 +9,7 @@
         <param name="onload" value="true" />
     </feature>
     <feature name="CordavaFitnessPlugin">
-        <param name="android-package" value="info.android.plugin.fitness.CordavaFitnessPlugin" />
+        <param name="android-package" value="info.android.plugin.CordavaFitnessPlugin" />
         <param name="onload" value="true" />
     </feature>
     <name>HelloCordova</name>
