@@ -19,7 +19,7 @@
     "@nodelib/fs.stat" "2.0.5"
     run-parallel "^1.1.9"
 
-"@nodelib/fs.stat@2.0.5", "@nodelib/fs.stat@^2.0.2":
+"@nodelib/fs.stat@^2.0.2", "@nodelib/fs.stat@2.0.5":
   version "2.0.5"
   resolved "https://registry.npmjs.org/@nodelib/fs.stat/-/fs.stat-2.0.5.tgz"
   integrity sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A==
@@ -288,8 +288,9 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-"info.android.plugin.fitness@file:CordavaFitnessPLugin":
+"info.android.plugin.fitness@file:CordavaFitnessPlugin":
   version "1.0.0"
+  resolved "file:CordavaFitnessPlugin"
 
 inherits@2:
   version "2.0.4"

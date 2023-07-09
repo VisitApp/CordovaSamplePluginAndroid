@@ -32,6 +32,8 @@ import io.cordova.fitnessappcordova.R;
  * This class echoes a string called from JavaScript.
  */
 public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener {
+
+
     WebView mWebView;
     public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
     public static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
