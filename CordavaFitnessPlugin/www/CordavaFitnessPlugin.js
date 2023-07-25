@@ -4,7 +4,7 @@ var CordavaFitnessPlugin = function () {}; // This just makes it easier for us t
 // All of your plugin functions go below this.
 // Note: We are not passing any options in the [] block for this, so make sure you include the empty [] block.
 
-CordavaFitnessPlugin.addTwoNumber = function (arg0, onSuccess, onError) {
+CordavaFitnessPlugin.coolMethod = function (arg0, onSuccess, onError) {
   exec(onSuccess, onError, "CordavaFitnessPlugin", "coolMethod", arg0);
 };
 
