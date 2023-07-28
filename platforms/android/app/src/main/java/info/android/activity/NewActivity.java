@@ -1,5 +1,6 @@
 package info.android.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -29,7 +30,7 @@ public class NewActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         settings.setCacheMode(2);
         webView.clearCache(true);
-        webView.setBackgroundColor(0);
+        webView.setBackgroundColor(Color.parseColor("#FFFFFF"));
         webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
         //webView.loadUrl("file:///android_asset/www/menu.html");
         webView.loadUrl("https://www.google.com/");
