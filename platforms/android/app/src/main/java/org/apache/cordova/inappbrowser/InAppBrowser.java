@@ -28,7 +28,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Parcelable;
-import android.provider.Browser;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -57,7 +56,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -65,50 +63,15 @@ import java.util.StringTokenizer;
 @SuppressLint("SetJavaScriptEnabled")
 public class InAppBrowser extends CordovaPlugin {
 
-    private static final String NULL = "null";
-    protected static final String LOG_TAG = "InAppBrowser";
-    private static final String SELF = "_self";
-    private static final String EXIT_EVENT = "exit";
-    private static final String HIDDEN = "hidden";
-    private static final String LOAD_START_EVENT = "loadstart";
-    private static final String LOAD_STOP_EVENT = "loadstop";
-    private static final String LOAD_ERROR_EVENT = "loaderror";
-    private static final String MESSAGE_EVENT = "message";
-    private static final String HARDWARE_BACK_BUTTON = "hardwareback";
-    private static final String MEDIA_PLAYBACK_REQUIRES_USER_ACTION = "mediaPlaybackRequiresUserAction";
-    private static final String SHOULD_PAUSE = "shouldPauseOnSuspend";
-    private static final Boolean DEFAULT_HARDWARE_BACK = true;
-    private static final String USER_WIDE_VIEW_PORT = "useWideViewPort";
-    private static final String TOOLBAR_COLOR = "toolbarcolor";
-    private static final String CLOSE_BUTTON_CAPTION = "closebuttoncaption";
-    private static final String CLOSE_BUTTON_COLOR = "closebuttoncolor";
-    private static final String LEFT_TO_RIGHT = "lefttoright";
-    private static final String NAVIGATION_COLOR = "navigationbuttoncolor";
-    private static final String FOOTER = "footer";
-    private static final String FOOTER_COLOR = "footercolor";
-    private static final String BEFORELOAD = "beforeload";
-    private static final String FULLSCREEN = "fullscreen";
+    protected static final String TAG = "mytag";
 
-    private static final int TOOLBAR_HEIGHT = 48;
-
-    private static final List customizableOptions = Arrays.asList(CLOSE_BUTTON_CAPTION, TOOLBAR_COLOR, NAVIGATION_COLOR, CLOSE_BUTTON_COLOR, FOOTER_COLOR);
 
     private InAppBrowserDialog dialog;
     private WebView inAppWebView;
     private CallbackContext callbackContext;
-    private boolean openWindowHidden = false;
-    private boolean hadwareBackButton = true;
-    private boolean mediaPlaybackRequiresUserGesture = false;
-    private boolean shouldPauseInAppBrowser = false;
-    private boolean useWideViewPort = true;
     private ValueCallback<Uri[]> mUploadCallback;
     private final static int FILECHOOSER_REQUESTCODE = 1;
-    private String closeButtonCaption = "";
-    private String closeButtonColor = "";
-    private boolean leftToRight = false;
 
-    private boolean fullscreen = true;
-    private String[] allowedSchemes;
     private InAppBrowserClient currentClient;
 
     /**
@@ -124,56 +87,21 @@ public class InAppBrowser extends CordovaPlugin {
             this.callbackContext = callbackContext;
             final String url = args.getString(0);
             String t = args.optString(1);
-            if (t == null || t.equals("") || t.equals(NULL)) {
-                t = SELF;
-            }
+
             final String target = t;
             final HashMap<String, String> features = parseFeature(args.optString(2));
 
-            LOG.d(LOG_TAG, "target = " + target);
+            LOG.d(TAG, "target = " + target);
 
             this.cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     String result = "";
 
-                    LOG.d(LOG_TAG, "in blank");
-                    result = showWebPage(url, features);
-
-
-                    PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, result);
-                    pluginResult.setKeepCallback(true);
-                    callbackContext.sendPluginResult(pluginResult);
+                    LOG.d(TAG, "in blank");
+                    showWebPage(url, features);
                 }
             });
-        } else if (action.equals("close")) {
-            closeDialog();
-        } else if (action.equals("show")) {
-            this.cordova.getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (dialog != null && !cordova.getActivity().isFinishing()) {
-                        dialog.show();
-                    }
-                }
-            });
-            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
-            pluginResult.setKeepCallback(true);
-            this.callbackContext.sendPluginResult(pluginResult);
-        } else if (action.equals("hide")) {
-            this.cordova.getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (dialog != null && !cordova.getActivity().isFinishing()) {
-                        dialog.hide();
-                    }
-                }
-            });
-            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
-            pluginResult.setKeepCallback(true);
-            this.callbackContext.sendPluginResult(pluginResult);
-        } else {
-            return false;
         }
         return true;
     }
@@ -191,9 +119,7 @@ public class InAppBrowser extends CordovaPlugin {
      */
     @Override
     public void onPause(boolean multitasking) {
-        if (shouldPauseInAppBrowser) {
-            inAppWebView.onPause();
-        }
+        inAppWebView.onPause();
     }
 
     /**
@@ -201,9 +127,7 @@ public class InAppBrowser extends CordovaPlugin {
      */
     @Override
     public void onResume(boolean multitasking) {
-        if (shouldPauseInAppBrowser) {
-            inAppWebView.onResume();
-        }
+        inAppWebView.onResume();
     }
 
     /**
@@ -214,46 +138,6 @@ public class InAppBrowser extends CordovaPlugin {
         closeDialog();
     }
 
-    /**
-     * Inject an object (script or style) into the InAppBrowser WebView.
-     * <p>
-     * This is a helper method for the inject{Script|Style}{Code|File} API calls, which
-     * provides a consistent method for injecting JavaScript code into the document.
-     * <p>
-     * If a wrapper string is supplied, then the source string will be JSON-encoded (adding
-     * quotes) and wrapped using string formatting. (The wrapper string should have a single
-     * '%s' marker)
-     *
-     * @param source    The source object (filename or script/style text) to inject into
-     *                  the document.
-     * @param jsWrapper A JavaScript string to wrap the source string in, so that the object
-     *                  is properly injected, or null if the source string is JavaScript text
-     *                  which should be executed directly.
-     */
-    private void injectDeferredObject(String source, String jsWrapper) {
-        if (inAppWebView != null) {
-            String scriptToInject;
-            if (jsWrapper != null) {
-                org.json.JSONArray jsonEsc = new org.json.JSONArray();
-                jsonEsc.put(source);
-                String jsonRepr = jsonEsc.toString();
-                String jsonSourceString = jsonRepr.substring(1, jsonRepr.length() - 1);
-                scriptToInject = String.format(jsWrapper, jsonSourceString);
-            } else {
-                scriptToInject = source;
-            }
-            final String finalScriptToInject = scriptToInject;
-            this.cordova.getActivity().runOnUiThread(new Runnable() {
-                @SuppressLint("NewApi")
-                @Override
-                public void run() {
-                    inAppWebView.evaluateJavascript(finalScriptToInject, null);
-                }
-            });
-        } else {
-            LOG.d(LOG_TAG, "Can't inject code into the system browser");
-        }
-    }
 
     /**
      * Put the list of features into a hash map
@@ -262,54 +146,20 @@ public class InAppBrowser extends CordovaPlugin {
      * @return
      */
     private HashMap<String, String> parseFeature(String optString) {
-        if (optString.equals(NULL)) {
-            return null;
-        } else {
-            HashMap<String, String> map = new HashMap<String, String>();
-            StringTokenizer features = new StringTokenizer(optString, ",");
-            StringTokenizer option;
-            while (features.hasMoreElements()) {
-                option = new StringTokenizer(features.nextToken(), "=");
-                if (option.hasMoreElements()) {
-                    String key = option.nextToken();
-                    String value = option.nextToken();
-                    if (!customizableOptions.contains(key)) {
-                        value = value.equals("yes") || value.equals("no") ? value : "yes";
-                    }
-                    map.put(key, value);
-                }
-            }
-            return map;
-        }
-    }
 
-    /**
-     * Display a new browser with the specified URL.
-     *
-     * @param url the url to load.
-     * @return "" if ok, or error message.
-     */
-    public String openExternal(String url) {
-        try {
-            Intent intent = null;
-            intent = new Intent(Intent.ACTION_VIEW);
-            // Omitting the MIME type for file: URLs causes "No Activity found to handle Intent".
-            // Adding the MIME type to http: URLs causes them to not be handled by the downloader.
-            Uri uri = Uri.parse(url);
-            if ("file".equals(uri.getScheme())) {
-                intent.setDataAndType(uri, webView.getResourceApi().getMimeType(uri));
-            } else {
-                intent.setData(uri);
+        HashMap<String, String> map = new HashMap<String, String>();
+        StringTokenizer features = new StringTokenizer(optString, ",");
+        StringTokenizer option;
+        while (features.hasMoreElements()) {
+            option = new StringTokenizer(features.nextToken(), "=");
+            if (option.hasMoreElements()) {
+                String key = option.nextToken();
+                String value = option.nextToken();
+                map.put(key, value);
             }
-            intent.putExtra(Browser.EXTRA_APPLICATION_ID, cordova.getActivity().getPackageName());
-            // CB-10795: Avoid circular loops by preventing it from opening in the current app
-            this.openExternalExcludeCurrentApp(intent);
-            return "";
-            // not catching FileUriExposedException explicitly because buildtools<24 doesn't know about it
-        } catch (java.lang.RuntimeException e) {
-            LOG.d(LOG_TAG, "InAppBrowser: Error loading url " + url + ":" + e.toString());
-            return e.toString();
         }
+        return map;
+
     }
 
     /**
@@ -379,13 +229,6 @@ public class InAppBrowser extends CordovaPlugin {
                 // http://developer.android.com/guide/webapps/migrating.html#Threads
                 childView.loadUrl("about:blank");
 
-                try {
-                    JSONObject obj = new JSONObject();
-                    obj.put("type", EXIT_EVENT);
-                    sendUpdate(obj, false);
-                } catch (JSONException ex) {
-                    LOG.d(LOG_TAG, "Should never happen");
-                }
             }
         });
     }
@@ -408,15 +251,6 @@ public class InAppBrowser extends CordovaPlugin {
         return this.inAppWebView.canGoBack();
     }
 
-    /**
-     * Has the user set the hardware back button to go back
-     *
-     * @return boolean
-     */
-    public boolean hardwareBack() {
-        return hadwareBackButton;
-    }
-
 
     private InAppBrowser getInAppBrowser() {
         return this;
@@ -428,50 +262,7 @@ public class InAppBrowser extends CordovaPlugin {
      * @param url      the url to load.
      * @param features jsonObject
      */
-    public String showWebPage(final String url, HashMap<String, String> features) {
-        // Determine if we should hide the location bar.
-        openWindowHidden = false;
-        mediaPlaybackRequiresUserGesture = false;
-
-        if (features != null) {
-            String hidden = features.get(HIDDEN);
-            if (hidden != null) {
-                openWindowHidden = hidden.equals("yes") ? true : false;
-            }
-            String hardwareBack = features.get(HARDWARE_BACK_BUTTON);
-            if (hardwareBack != null) {
-                hadwareBackButton = hardwareBack.equals("yes") ? true : false;
-            } else {
-                hadwareBackButton = DEFAULT_HARDWARE_BACK;
-            }
-            String mediaPlayback = features.get(MEDIA_PLAYBACK_REQUIRES_USER_ACTION);
-            if (mediaPlayback != null) {
-                mediaPlaybackRequiresUserGesture = mediaPlayback.equals("yes") ? true : false;
-            }
-            String shouldPause = features.get(SHOULD_PAUSE);
-            if (shouldPause != null) {
-                shouldPauseInAppBrowser = shouldPause.equals("yes") ? true : false;
-            }
-            String wideViewPort = features.get(USER_WIDE_VIEW_PORT);
-            if (wideViewPort != null) {
-                useWideViewPort = wideViewPort.equals("yes") ? true : false;
-            }
-            String closeButtonCaptionSet = features.get(CLOSE_BUTTON_CAPTION);
-            if (closeButtonCaptionSet != null) {
-                closeButtonCaption = closeButtonCaptionSet;
-            }
-            String closeButtonColorSet = features.get(CLOSE_BUTTON_COLOR);
-            if (closeButtonColorSet != null) {
-                closeButtonColor = closeButtonColorSet;
-            }
-            String leftToRightSet = features.get(LEFT_TO_RIGHT);
-            leftToRight = leftToRightSet != null && leftToRightSet.equals("yes");
-
-            String fullscreenSet = features.get(FULLSCREEN);
-            if (fullscreenSet != null) {
-                fullscreen = fullscreenSet.equals("yes") ? true : false;
-            }
-        }
+    public void showWebPage(final String url, HashMap<String, String> features) {
 
         final CordovaWebView thatWebView = this.webView;
 
@@ -491,9 +282,8 @@ public class InAppBrowser extends CordovaPlugin {
                 dialog = new InAppBrowserDialog(cordova.getActivity(), android.R.style.Theme_NoTitleBar);
                 dialog.getWindow().getAttributes().windowAnimations = android.R.style.Animation_Dialog;
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                if (fullscreen) {
-                    dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                }
+                dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
                 dialog.setCancelable(true);
                 dialog.setInAppBroswer(getInAppBrowser());
 
@@ -527,7 +317,7 @@ public class InAppBrowser extends CordovaPlugin {
 
                 inAppWebView.setWebChromeClient(new WebChromeClient() {
                     public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-                        LOG.d(LOG_TAG, "File Chooser 5.0+");
+                        LOG.d(TAG, "File Chooser 5.0+");
                         // If callback exists, finish it.
                         if (mUploadCallback != null) {
                             mUploadCallback.onReceiveValue(null);
@@ -552,26 +342,6 @@ public class InAppBrowser extends CordovaPlugin {
                 });
 
 
-//                // File Chooser Implemented ChromeClient
-//                inAppWebView.setWebChromeClient(new InAppChromeClient(thatWebView) {
-//                    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-//                        LOG.d(LOG_TAG, "File Chooser 5.0+");
-//                        // If callback exists, finish it.
-//                        if (mUploadCallback != null) {
-//                            mUploadCallback.onReceiveValue(null);
-//                        }
-//                        mUploadCallback = filePathCallback;
-//
-//                        // Create File Chooser Intent
-//                        Intent content = new Intent(Intent.ACTION_GET_CONTENT);
-//                        content.addCategory(Intent.CATEGORY_OPENABLE);
-//                        content.setType("*/*");
-//
-//                        // Run cordova startActivityForResult
-//                        cordova.startActivityForResult(InAppBrowser.this, Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE);
-//                        return true;
-//                    }
-//                });
                 currentClient = new InAppBrowserClient(thatWebView);
                 inAppWebView.setWebViewClient(currentClient);
                 WebSettings settings = inAppWebView.getSettings();
@@ -584,18 +354,11 @@ public class InAppBrowser extends CordovaPlugin {
                 class JsObject {
                     @JavascriptInterface
                     public void postMessage(String data) {
-                        try {
-                            JSONObject obj = new JSONObject();
-                            obj.put("type", MESSAGE_EVENT);
-                            obj.put("data", new JSONObject(data));
-                            sendUpdate(obj, true);
-                        } catch (JSONException ex) {
-                            LOG.e(LOG_TAG, "data object passed to postMessage has caused a JSON error.");
-                        }
+
                     }
                 }
 
-                settings.setMediaPlaybackRequiresUserGesture(mediaPlaybackRequiresUserGesture);
+                settings.setMediaPlaybackRequiresUserGesture(false);
                 inAppWebView.addJavascriptInterface(new JsObject(), "cordova_iab");
                 settings.setDomStorageEnabled(true);
 
@@ -605,7 +368,6 @@ public class InAppBrowser extends CordovaPlugin {
                 inAppWebView.loadUrl(url);
                 inAppWebView.setId(Integer.valueOf(6));
                 inAppWebView.getSettings().setLoadWithOverviewMode(true);
-                inAppWebView.getSettings().setUseWideViewPort(useWideViewPort);
                 // Multiple Windows set to true to mitigate Chromium security bug.
                 //  See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
                 inAppWebView.getSettings().setSupportMultipleWindows(true);
@@ -630,18 +392,13 @@ public class InAppBrowser extends CordovaPlugin {
                     dialog.show();
                     dialog.getWindow().setAttributes(lp);
                 }
-                // the goal of openhidden is to load the url and not display it
-                // Show() needs to be called to cause the URL to be loaded
-                if (openWindowHidden && dialog != null) {
-                    dialog.hide();
-                }
 
                 Log.d("mytag", "Line no: 1071");
 
             }
         };
+
         this.cordova.getActivity().runOnUiThread(runnable);
-        return "";
     }
 
     /**
@@ -678,7 +435,7 @@ public class InAppBrowser extends CordovaPlugin {
      * @param intent      the data from android file chooser
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        LOG.d(LOG_TAG, "onActivityResult");
+        LOG.d(TAG, "onActivityResult");
         // If RequestCode or Callback is Invalid
         if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
             super.onActivityResult(requestCode, resultCode, intent);
@@ -729,21 +486,7 @@ public class InAppBrowser extends CordovaPlugin {
          */
         public boolean shouldOverrideUrlLoading(String url, String method) {
             boolean override = false;
-            String errorMessage = null;
 
-            if (errorMessage != null) {
-                try {
-                    LOG.e(LOG_TAG, errorMessage);
-                    JSONObject obj = new JSONObject();
-                    obj.put("type", LOAD_ERROR_EVENT);
-                    obj.put("url", url);
-                    obj.put("code", -1);
-                    obj.put("message", errorMessage);
-                    sendUpdate(obj, true, PluginResult.Status.ERROR);
-                } catch (Exception e) {
-                    LOG.e(LOG_TAG, "Error sending loaderror for " + url + ": " + e.toString());
-                }
-            }
 
             if (url.startsWith(WebView.SCHEME_TEL)) {
                 try {
@@ -752,7 +495,7 @@ public class InAppBrowser extends CordovaPlugin {
                     cordova.getActivity().startActivity(intent);
                     override = true;
                 } catch (android.content.ActivityNotFoundException e) {
-                    LOG.e(LOG_TAG, "Error dialing " + url + ": " + e.toString());
+                    LOG.e(TAG, "Error dialing " + url + ": " + e.toString());
                 }
             } else if (url.startsWith("geo:") || url.startsWith(WebView.SCHEME_MAILTO) || url.startsWith("market:") || url.startsWith("intent:")) {
                 try {
@@ -761,7 +504,7 @@ public class InAppBrowser extends CordovaPlugin {
                     cordova.getActivity().startActivity(intent);
                     override = true;
                 } catch (android.content.ActivityNotFoundException e) {
-                    LOG.e(LOG_TAG, "Error with " + url + ": " + e.toString());
+                    LOG.e(TAG, "Error with " + url + ": " + e.toString());
                 }
             }
             // If sms:5551212?body=This is the message
@@ -792,31 +535,7 @@ public class InAppBrowser extends CordovaPlugin {
                     cordova.getActivity().startActivity(intent);
                     override = true;
                 } catch (android.content.ActivityNotFoundException e) {
-                    LOG.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
-                }
-            }
-            // Test for whitelisted custom scheme names like mycoolapp:// or twitteroauthresponse:// (Twitter Oauth Response)
-            else if (!url.startsWith("http:") && !url.startsWith("https:") && url.matches("^[A-Za-z0-9+.-]*://.*?$")) {
-                if (allowedSchemes == null) {
-                    String allowed = preferences.getString("AllowedSchemes", null);
-                    if (allowed != null) {
-                        allowedSchemes = allowed.split(",");
-                    }
-                }
-                if (allowedSchemes != null) {
-                    for (String scheme : allowedSchemes) {
-                        if (url.startsWith(scheme)) {
-                            try {
-                                JSONObject obj = new JSONObject();
-                                obj.put("type", "customscheme");
-                                obj.put("url", url);
-                                sendUpdate(obj, true);
-                                override = true;
-                            } catch (JSONException ex) {
-                                LOG.e(LOG_TAG, "Custom Scheme URI passed in has caused a JSON error.");
-                            }
-                        }
-                    }
+                    LOG.e(TAG, "Error sending sms " + url + ":" + e.toString());
                 }
             }
             return override;
@@ -855,26 +574,16 @@ public class InAppBrowser extends CordovaPlugin {
             } else {
                 // Assume that everything is HTTP at this point, because if we don't specify,
                 // it really should be.  Complain loudly about this!!!
-                LOG.e(LOG_TAG, "Possible Uncaught/Unknown URI");
+                LOG.e(TAG, "Possible Uncaught/Unknown URI");
                 newloc = "http://" + url;
             }
 
 
-            try {
-                JSONObject obj = new JSONObject();
-                obj.put("type", LOAD_START_EVENT);
-                obj.put("url", newloc);
-                sendUpdate(obj, true);
-            } catch (JSONException ex) {
-                LOG.e(LOG_TAG, "URI passed in has caused a JSON error.");
-            }
         }
 
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
 
-            // Set the namespace for postMessage()
-            injectDeferredObject("window.webkit={messageHandlers:{cordova_iab:cordova_iab}}", null);
 
             // CB-10395 InAppBrowser's WebView not storing cookies reliable to local device storage
             CookieManager.getInstance().flush();
@@ -883,31 +592,11 @@ public class InAppBrowser extends CordovaPlugin {
             view.clearFocus();
             view.requestFocus();
 
-            try {
-                JSONObject obj = new JSONObject();
-                obj.put("type", LOAD_STOP_EVENT);
-                obj.put("url", url);
-
-                sendUpdate(obj, true);
-            } catch (JSONException ex) {
-                LOG.d(LOG_TAG, "Should never happen");
-            }
         }
 
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
 
-            try {
-                JSONObject obj = new JSONObject();
-                obj.put("type", LOAD_ERROR_EVENT);
-                obj.put("url", failingUrl);
-                obj.put("code", errorCode);
-                obj.put("message", description);
-
-                sendUpdate(obj, true, PluginResult.Status.ERROR);
-            } catch (JSONException ex) {
-                LOG.d(LOG_TAG, "Should never happen");
-            }
         }
 
     }
