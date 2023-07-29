@@ -61,35 +61,6 @@ function loadVisitURL(directMagicLink, firebase_default_client_id) {
   );
 }
 
-function openNewActivity() {
-  //  console.log("loadVisitURL called");
-
-  cordova.exec(
-    function (winParam) {
-      console.log(winParam);
-    },
-    function (error) {
-      console.log(error);
-    },
-    "CordavaFitnessPlugin", //plugin class name
-    "new_activity", //plugin method
-    []
-  );
-}
-
-function openInAppBrowser() {
-  let url = "https://star-health.getvisitapp.xyz/?mluib7c=BXQqShdC";
-  let ref = cordova.InAppBrowser.open(
-    url,
-    "_blank",
-    "location=no,hidden=no,hidenavigationbuttons=no,hardwareback=yes,fullscreen=yes"
-  );
-
-  // setTimeout(function () {
-  //   ref.close();
-  // }, 5000);
-}
-
 function playVideo() {
   // cordova.VideoPlayer.play(
   //   "https://www.youtube.com/watch?v=a3ICNMQW7Ok&ab_channel=TimotiusJoso",
