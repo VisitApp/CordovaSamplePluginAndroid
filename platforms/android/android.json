@@ -25,11 +25,7 @@
               "count": 1
             },
             {
-              "xml": "<feature name=\"InAppBrowser\"><param name=\"android-package\" value=\"org.apache.cordova.inappbrowser.InAppBrowser\" /></feature>",
-              "count": 1
-            },
-            {
-              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"android-package\" value=\"info.android.plugin.CordavaFitnessPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
+              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"android-package\" value=\"info.android.plugin.CordavaFitnessPlugin\" /></feature>",
               "count": 1
             }
           ]
@@ -50,9 +46,6 @@
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
     "com.mwj.cordova.androidvideoplayer": {
-      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
-    },
-    "cordova-plugin-inappbrowser": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
     "info.android.plugin.fitness": {
@@ -86,14 +79,6 @@
       ]
     },
     {
-      "id": "cordova-plugin-inappbrowser.inappbrowser",
-      "file": "plugins/cordova-plugin-inappbrowser/www/inappbrowser.js",
-      "pluginId": "cordova-plugin-inappbrowser",
-      "clobbers": [
-        "cordova.InAppBrowser.open"
-      ]
-    },
-    {
       "id": "info.android.plugin.fitness.CordavaFitnessPlugin",
       "file": "plugins/info.android.plugin.fitness/www/CordavaFitnessPlugin.js",
       "pluginId": "info.android.plugin.fitness",
@@ -106,7 +91,6 @@
     "cordova-plugin-splashscreen": "6.0.0",
     "cordova-plugin-statusbar": "3.0.0",
     "com.mwj.cordova.androidvideoplayer": "1.0.3",
-    "cordova-plugin-inappbrowser": "5.0.1-dev",
     "info.android.plugin.fitness": "1.0.0"
   }
 }

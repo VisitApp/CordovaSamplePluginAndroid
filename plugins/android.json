@@ -16,9 +16,6 @@
     "com.mwj.cordova.androidvideoplayer": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
-    "cordova-plugin-inappbrowser": {
-      "PACKAGE_NAME": "io.cordova.fitnessappcordova"
-    },
     "info.android.plugin.fitness": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }

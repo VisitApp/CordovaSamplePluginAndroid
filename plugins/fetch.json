@@ -31,14 +31,6 @@
     "is_top_level": true,
     "variables": {}
   },
-  "cordova-plugin-inappbrowser": {
-    "source": {
-      "type": "local",
-      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/cordova-plugin-inappbrowser"
-    },
-    "is_top_level": true,
-    "variables": {}
-  },
   "info.android.plugin.fitness": {
     "source": {
       "type": "local",

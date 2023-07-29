@@ -53,7 +53,7 @@ function loadVisitURL(directMagicLink, firebase_default_client_id) {
       console.log(error);
     },
     "CordavaFitnessPlugin", //plugin class name
-    "loadVisitWebUrl", //plugin method
+    "open", //plugin method
     [
       directMagicLink,
       firebase_default_client_id, //firebase default_client_id (should change based on the build type)

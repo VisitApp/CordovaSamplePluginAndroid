@@ -11,12 +11,8 @@
     <feature name="AndroidVideoPlayer">
         <param name="android-package" value="com.mwj.cordova.videoplayer.AndroidVideoPlayer" />
     </feature>
-    <feature name="InAppBrowser">
-        <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
-    </feature>
     <feature name="CordavaFitnessPlugin">
         <param name="android-package" value="info.android.plugin.CordavaFitnessPlugin" />
-        <param name="onload" value="true" />
     </feature>
     <name>HelloCordova</name>
     <description>

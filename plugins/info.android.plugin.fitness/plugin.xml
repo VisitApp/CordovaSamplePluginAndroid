@@ -23,7 +23,6 @@
                 <param
                     name="android-package"
                     value="info.android.plugin.CordavaFitnessPlugin" />
-                <param name="onload" value="true" />
             </feature>
         </config-file>
 
@@ -35,6 +34,10 @@
 
         <source-file
             src="src/android/CordavaFitnessPlugin.java"
+            target-dir="src/info/android/plugin" />
+
+        <source-file
+            src="src/android/CordovaFitnessDialog.java"
             target-dir="src/info/android/plugin" />
 
     </platform>
