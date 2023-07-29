@@ -23,14 +23,6 @@
     "is_top_level": true,
     "variables": {}
   },
-  "info.android.plugin.fitness": {
-    "source": {
-      "type": "local",
-      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.android.plugin.fitness"
-    },
-    "is_top_level": true,
-    "variables": {}
-  },
   "com.mwj.cordova.androidvideoplayer": {
     "source": {
       "type": "registry",
@@ -43,6 +35,14 @@
     "source": {
       "type": "local",
       "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/cordova-plugin-inappbrowser"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "info.android.plugin.fitness": {
+    "source": {
+      "type": "local",
+      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.android.plugin.fitness"
     },
     "is_top_level": true,
     "variables": {}

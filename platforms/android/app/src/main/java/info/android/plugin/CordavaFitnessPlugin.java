@@ -3,6 +3,7 @@ package info.android.plugin;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -11,10 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.DownloadListener;
-import android.webkit.URLUtil;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-import info.android.activity.NewActivity;
 
 import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
 import com.getvisitapp.google_fit.data.GoogleFitUtil;
@@ -27,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.HashMap;
-import android.content.Context;
 
 import io.cordova.fitnessappcordova.R;
 
@@ -71,32 +69,12 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             int result = arg1 + arg2;
             callbackContext.success("Result: " + result);
             return true;
-        } else if (action.equals("new_activity")) {
-            Intent intent = new Intent(context, NewActivity.class);
-            this.cordova.getActivity().startActivity(intent);
         } else if (action.equals("loadVisitWebUrl")) {
-            String baseUrl = args.getString(0);
+            String magicLink = args.getString(0);
             String default_client_id = args.getString(1);
-            String authToken = args.getString(2);
-            String userId = args.getString(3);
-            String directMagicLink = args.getString(4);
 
-            Log.d(TAG, "baseUrl: " + baseUrl);
-            Log.d(TAG, "defaultClientID: " + default_client_id);
-            Log.d(TAG, "token: " + authToken);
-            Log.d(TAG, "userId: " + userId);
-            Log.d(TAG, "directMagicLink: " + directMagicLink);
-
-            String magicLink = baseUrl + "star-health?token=" + authToken + "&id=" + userId;
-
-            if (!directMagicLink.isEmpty()) {
-                magicLink = directMagicLink;
-            }
-
-            Log.d("mytag", "magicLink: " + magicLink);
-
-            // Load the webpage
-            String finalMagicLink = magicLink;
+            Log.d(TAG, "magicLink: " + magicLink);
+            Log.d(TAG, "default_client_id: " + default_client_id);
 
             activity.runOnUiThread(new Runnable() {
                 @Override
@@ -134,7 +112,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     mWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
-                    webView.showWebPage(finalMagicLink, false, false, new HashMap<>());
+                    webView.showWebPage(magicLink, false, false, new HashMap<>());
 
                     mWebView.setDownloadListener(new DownloadListener() {
                         @Override

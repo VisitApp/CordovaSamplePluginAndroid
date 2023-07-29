@@ -14,11 +14,8 @@ function onDeviceReady() {
       console.log("loadVisitApp called");
 
       loadVisitURL(
-        "https://star-health.getvisitapp.xyz/",
-        "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com",
-        "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOi[%E2%80%A6]GFsIn0.f0656mzmcRMSCywkbEptdd6JgkDfIqN0S9t-P1aPyt8",
-        "8158",
-        "https://itgi.getvisitapp.xyz/sso?userParams=-PVcv_tShE-luebNROediKFWXRcMIp0qicT-aHR3-oWBmEPIMk2bfepPVz1-qUluOIzuIq1zzeAnsGYw9WQ_QkhYQYYmBIbiHAcG_823wJ-4CApPZSkVZjo4Mb7KVT-fMEO4_IhDwSrL5_f7JhRzLA3-TNPrxj9FerxlSo6GZxpjNci9_KWnFUwIuMTBXZOxONEKO7ipCKMtzh90JJgbUcPkT4q-R140V8LFpO5YbNtZSBiI-8uAy2VIWMX4tl9VDBP72XYKx0GSwgFkEghXXML-IESpW5Hd8saQ_KJm65MIO-6EWAerRbQQX4DZauhqOyUvkFKDAUtpS6zDjRwudw&clientId=itgi-sdk-012"
+        "https://star-health.getvisitapp.xyz/?mluib7c=BXQqShdC",
+        "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com"
       );
     });
 
@@ -45,13 +42,7 @@ function onDeviceReady() {
   });
 }
 
-function loadVisitURL(
-  baseUrl,
-  firebase_default_client_id,
-  user_token,
-  userId,
-  directMagicLink
-) {
+function loadVisitURL(directMagicLink, firebase_default_client_id) {
   //  console.log("loadVisitURL called");
 
   cordova.exec(
@@ -64,12 +55,9 @@ function loadVisitURL(
     "CordavaFitnessPlugin", //plugin class name
     "loadVisitWebUrl", //plugin method
     [
-      baseUrl, //base url (should change based on the build type)
-      firebase_default_client_id, //firebase default_client_id (should change based on the build type)
-      user_token, //token
-      userId,
       directMagicLink,
-    ] //userId
+      firebase_default_client_id, //firebase default_client_id (should change based on the build type)
+    ]
   );
 }
 
@@ -90,8 +78,7 @@ function openNewActivity() {
 }
 
 function openInAppBrowser() {
-  let url =
-    "https://itgi.getvisitapp.xyz/sso?userParams=-PVcv_tShE-luebNROediKFWXRcMIp0qicT-aHR3-oWBmEPIMk2bfepPVz1-qUluOIzuIq1zzeAnsGYw9WQ_QkhYQYYmBIbiHAcG_823wJ-4CApPZSkVZjo4Mb7KVT-fMEO4_IhDwSrL5_f7JhRzLA3-TNPrxj9FerxlSo6GZxpjNci9_KWnFUwIuMTBXZOxONEKO7ipCKMtzh90JJgbUcPkT4q-R140V8LFpO5YbNtZSBiI-8uAy2VIWMX4tl9VDBP72XYKx0GSwgFkEghXXML-IESpW5Hd8saQ_KJm65MIO-6EWAerRbQQX4DZauhqOyUvkFKDAUtpS6zDjRwudw&clientId=itgi-sdk-012";
+  let url = "https://star-health.getvisitapp.xyz/?mluib7c=BXQqShdC";
   let ref = cordova.InAppBrowser.open(
     url,
     "_blank",

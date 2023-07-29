@@ -26,9 +26,9 @@
       "cordova-plugin-whitelist": {},
       "cordova-plugin-statusbar": {},
       "cordova-plugin-splashscreen": {},
-      "info.android.plugin.fitness": {},
       "com.mwj.cordova.androidvideoplayer": {},
-      "cordova-plugin-inappbrowser": {}
+      "cordova-plugin-inappbrowser": {},
+      "info.android.plugin.fitness": {}
     },
     "platforms": [
       "android"

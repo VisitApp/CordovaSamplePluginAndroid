@@ -18,16 +18,17 @@
 */
 package org.apache.cordova.inappbrowser;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Parcelable;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -35,7 +36,6 @@ import android.view.WindowManager.LayoutParams;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
-import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -46,22 +46,21 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.getvisitapp.google_fit.data.GoogleFitStatusListener;
+import com.getvisitapp.google_fit.data.GoogleFitUtil;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
-import org.apache.cordova.PluginResult;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringTokenizer;
-
+/**
+ * This plugin creates a new webview and renders it inside a dialog
+ */
 @SuppressLint("SetJavaScriptEnabled")
-public class InAppBrowser extends CordovaPlugin {
+public class InAppBrowser extends CordovaPlugin implements GoogleFitStatusListener {
 
     protected static final String TAG = "mytag";
 
@@ -73,6 +72,28 @@ public class InAppBrowser extends CordovaPlugin {
     private final static int FILECHOOSER_REQUESTCODE = 1;
 
     private InAppBrowserClient currentClient;
+    GoogleFitUtil googleFitUtil;
+    Activity activity;
+    Context context;
+
+    public static final String ACTIVITY_RECOGNITION = Manifest.permission.ACTIVITY_RECOGNITION;
+    public static final String LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
+
+    public static final int ACTIVITY_RECOGNITION_REQUEST_CODE = 490;
+    public static final int LOCATION_PERMISSION_REQUEST_CODE = 787;
+
+    boolean dailyDataSynced = false;
+    boolean syncDataWithServer = false;
+
+    @Override
+    protected void pluginInitialize() {
+        super.pluginInitialize();
+        Log.d(TAG, "plugin: pluginInitialize() called");
+
+        activity = (Activity) this.cordova.getActivity();
+        context = this.cordova.getContext();
+
+    }
 
     /**
      * Executes the request and returns PluginResult.
@@ -89,17 +110,135 @@ public class InAppBrowser extends CordovaPlugin {
             String t = args.optString(1);
 
             final String target = t;
-            final HashMap<String, String> features = parseFeature(args.optString(2));
 
             LOG.d(TAG, "target = " + target);
 
             this.cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    String result = "";
 
-                    LOG.d(TAG, "in blank");
-                    showWebPage(url, features);
+
+                    // CB-6702 InAppBrowser hangs when opening more than one instance
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                    ;
+
+                    // Let's create the main dialog
+                    dialog = new InAppBrowserDialog(cordova.getActivity(), android.R.style.Theme_NoTitleBar);
+                    dialog.getWindow().getAttributes().windowAnimations = android.R.style.Animation_Dialog;
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+                    dialog.setCancelable(true);
+                    dialog.setInAppBroswer(getInAppBrowser());
+
+                    // Main container layout
+                    LinearLayout main = new LinearLayout(cordova.getActivity());
+                    main.setOrientation(LinearLayout.VERTICAL);
+
+
+                    // WebView
+                    inAppWebView = new WebView(cordova.getActivity());
+                    inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+
+                    //1. set background color
+                    inAppWebView.setBackgroundColor(Color.parseColor("#FFFFFF"));
+
+
+                    //2. add downloadlistener
+                    inAppWebView.setDownloadListener(new DownloadListener() {
+                        @Override
+                        public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                            try {
+                                Uri uri = Uri.parse(url);
+                                inAppWebView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+
+                    inAppWebView.setWebChromeClient(new WebChromeClient() {
+                        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+                            LOG.d(TAG, "File Chooser 5.0+");
+                            // If callback exists, finish it.
+                            if (mUploadCallback != null) {
+                                mUploadCallback.onReceiveValue(null);
+                            }
+                            mUploadCallback = filePathCallback;
+
+                            // Create File Chooser Intent
+                            Intent content = new Intent(Intent.ACTION_GET_CONTENT);
+                            content.addCategory(Intent.CATEGORY_OPENABLE);
+                            content.setType("*/*");
+
+                            // Run cordova startActivityForResult
+                            cordova.startActivityForResult(InAppBrowser.this, Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE);
+                            return true;
+                        }
+
+                        @Override
+                        public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                            super.onGeolocationPermissionsShowPrompt(origin, callback);
+                            callback.invoke(origin, true, false);
+                        }
+                    });
+
+
+                    currentClient = new InAppBrowserClient(webView);
+                    inAppWebView.setWebViewClient(currentClient);
+                    WebSettings settings = inAppWebView.getSettings();
+                    settings.setJavaScriptEnabled(true);
+                    settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                    settings.setBuiltInZoomControls(false);
+                    settings.setGeolocationEnabled(true);
+
+                    settings.setPluginState(android.webkit.WebSettings.PluginState.ON);
+
+
+                    settings.setMediaPlaybackRequiresUserGesture(false);
+                    settings.setDomStorageEnabled(true);
+
+                    // Enable Thirdparty Cookies
+                    CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
+
+
+                    googleFitUtil = new GoogleFitUtil(activity, InAppBrowser.this, "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com", true);
+                    inAppWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
+                    googleFitUtil.init();
+
+
+                    inAppWebView.loadUrl(url);
+                    inAppWebView.getSettings().setLoadWithOverviewMode(true);
+                    // Multiple Windows set to true to mitigate Chromium security bug.
+                    //  See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
+                    inAppWebView.getSettings().setSupportMultipleWindows(true);
+                    inAppWebView.requestFocus();
+                    inAppWebView.requestFocusFromTouch();
+                    Log.d("mytag", "Line no: 197");
+
+
+                    // Add our webview to our main view/layout
+                    RelativeLayout webViewLayout = new RelativeLayout(cordova.getActivity());
+                    webViewLayout.addView(inAppWebView);
+                    main.addView(webViewLayout);
+
+
+                    WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+                    lp.copyFrom(dialog.getWindow().getAttributes());
+                    lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+                    lp.height = WindowManager.LayoutParams.MATCH_PARENT;
+
+                    if (dialog != null) {
+                        dialog.setContentView(main);
+                        dialog.show();
+                        dialog.getWindow().setAttributes(lp);
+                    }
+
+                    Log.d("mytag", "Line no: 217");
+
                 }
             });
         }
@@ -138,68 +277,6 @@ public class InAppBrowser extends CordovaPlugin {
         closeDialog();
     }
 
-
-    /**
-     * Put the list of features into a hash map
-     *
-     * @param optString
-     * @return
-     */
-    private HashMap<String, String> parseFeature(String optString) {
-
-        HashMap<String, String> map = new HashMap<String, String>();
-        StringTokenizer features = new StringTokenizer(optString, ",");
-        StringTokenizer option;
-        while (features.hasMoreElements()) {
-            option = new StringTokenizer(features.nextToken(), "=");
-            if (option.hasMoreElements()) {
-                String key = option.nextToken();
-                String value = option.nextToken();
-                map.put(key, value);
-            }
-        }
-        return map;
-
-    }
-
-    /**
-     * Opens the intent, providing a chooser that excludes the current app to avoid
-     * circular loops.
-     */
-    private void openExternalExcludeCurrentApp(Intent intent) {
-        String currentPackage = cordova.getActivity().getPackageName();
-        boolean hasCurrentPackage = false;
-
-        PackageManager pm = cordova.getActivity().getPackageManager();
-        List<ResolveInfo> activities = pm.queryIntentActivities(intent, 0);
-        ArrayList<Intent> targetIntents = new ArrayList<Intent>();
-
-        for (ResolveInfo ri : activities) {
-            if (!currentPackage.equals(ri.activityInfo.packageName)) {
-                Intent targetIntent = (Intent) intent.clone();
-                targetIntent.setPackage(ri.activityInfo.packageName);
-                targetIntents.add(targetIntent);
-            } else {
-                hasCurrentPackage = true;
-            }
-        }
-
-        // If the current app package isn't a target for this URL, then use
-        // the normal launch behavior
-        if (hasCurrentPackage == false || targetIntents.size() == 0) {
-            this.cordova.getActivity().startActivity(intent);
-        }
-        // If there's only one possible intent, launch it directly
-        else if (targetIntents.size() == 1) {
-            this.cordova.getActivity().startActivity(targetIntents.get(0));
-        }
-        // Otherwise, show a custom chooser without the current app listed
-        else if (targetIntents.size() > 0) {
-            Intent chooser = Intent.createChooser(targetIntents.remove(targetIntents.size() - 1), null);
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, targetIntents.toArray(new Parcelable[]{}));
-            this.cordova.getActivity().startActivity(chooser);
-        }
-    }
 
     /**
      * Closes the dialog
@@ -256,176 +333,6 @@ public class InAppBrowser extends CordovaPlugin {
         return this;
     }
 
-    /**
-     * Display a new browser with the specified URL.
-     *
-     * @param url      the url to load.
-     * @param features jsonObject
-     */
-    public void showWebPage(final String url, HashMap<String, String> features) {
-
-        final CordovaWebView thatWebView = this.webView;
-
-        // Create dialog in new thread
-        Runnable runnable = new Runnable() {
-
-            @SuppressLint("NewApi")
-            public void run() {
-
-                // CB-6702 InAppBrowser hangs when opening more than one instance
-                if (dialog != null) {
-                    dialog.dismiss();
-                }
-                ;
-
-                // Let's create the main dialog
-                dialog = new InAppBrowserDialog(cordova.getActivity(), android.R.style.Theme_NoTitleBar);
-                dialog.getWindow().getAttributes().windowAnimations = android.R.style.Animation_Dialog;
-                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-                dialog.setCancelable(true);
-                dialog.setInAppBroswer(getInAppBrowser());
-
-                // Main container layout
-                LinearLayout main = new LinearLayout(cordova.getActivity());
-                main.setOrientation(LinearLayout.VERTICAL);
-
-
-                // WebView
-                inAppWebView = new WebView(cordova.getActivity());
-                inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-                inAppWebView.setId(Integer.valueOf(6));
-
-                //1. set background color
-                inAppWebView.setBackgroundColor(Color.parseColor("#FFFFFF"));
-
-
-                //2. add downloadlistener
-                inAppWebView.setDownloadListener(new DownloadListener() {
-                    @Override
-                    public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
-                        try {
-                            Uri uri = Uri.parse(url);
-                            inAppWebView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-
-
-                inAppWebView.setWebChromeClient(new WebChromeClient() {
-                    public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-                        LOG.d(TAG, "File Chooser 5.0+");
-                        // If callback exists, finish it.
-                        if (mUploadCallback != null) {
-                            mUploadCallback.onReceiveValue(null);
-                        }
-                        mUploadCallback = filePathCallback;
-
-                        // Create File Chooser Intent
-                        Intent content = new Intent(Intent.ACTION_GET_CONTENT);
-                        content.addCategory(Intent.CATEGORY_OPENABLE);
-                        content.setType("*/*");
-
-                        // Run cordova startActivityForResult
-                        cordova.startActivityForResult(InAppBrowser.this, Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE);
-                        return true;
-                    }
-
-                    @Override
-                    public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-                        super.onGeolocationPermissionsShowPrompt(origin, callback);
-                        callback.invoke(origin, true, false);
-                    }
-                });
-
-
-                currentClient = new InAppBrowserClient(thatWebView);
-                inAppWebView.setWebViewClient(currentClient);
-                WebSettings settings = inAppWebView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setJavaScriptCanOpenWindowsAutomatically(true);
-                settings.setBuiltInZoomControls(false);
-                settings.setPluginState(android.webkit.WebSettings.PluginState.ON);
-
-                // Add postMessage interface
-                class JsObject {
-                    @JavascriptInterface
-                    public void postMessage(String data) {
-
-                    }
-                }
-
-                settings.setMediaPlaybackRequiresUserGesture(false);
-                inAppWebView.addJavascriptInterface(new JsObject(), "cordova_iab");
-                settings.setDomStorageEnabled(true);
-
-                // Enable Thirdparty Cookies
-                CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
-
-                inAppWebView.loadUrl(url);
-                inAppWebView.setId(Integer.valueOf(6));
-                inAppWebView.getSettings().setLoadWithOverviewMode(true);
-                // Multiple Windows set to true to mitigate Chromium security bug.
-                //  See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
-                inAppWebView.getSettings().setSupportMultipleWindows(true);
-                inAppWebView.requestFocus();
-                inAppWebView.requestFocusFromTouch();
-                Log.d("mytag", "Line no: 1026");
-
-
-                // Add our webview to our main view/layout
-                RelativeLayout webViewLayout = new RelativeLayout(cordova.getActivity());
-                webViewLayout.addView(inAppWebView);
-                main.addView(webViewLayout);
-
-
-                WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-                lp.copyFrom(dialog.getWindow().getAttributes());
-                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-                lp.height = WindowManager.LayoutParams.MATCH_PARENT;
-
-                if (dialog != null) {
-                    dialog.setContentView(main);
-                    dialog.show();
-                    dialog.getWindow().setAttributes(lp);
-                }
-
-                Log.d("mytag", "Line no: 1071");
-
-            }
-        };
-
-        this.cordova.getActivity().runOnUiThread(runnable);
-    }
-
-    /**
-     * Create a new plugin success result and send it back to JavaScript
-     *
-     * @param obj a JSONObject contain event payload information
-     */
-    private void sendUpdate(JSONObject obj, boolean keepCallback) {
-        sendUpdate(obj, keepCallback, PluginResult.Status.OK);
-    }
-
-    /**
-     * Create a new plugin result and send it back to JavaScript
-     *
-     * @param obj    a JSONObject contain event payload information
-     * @param status the status code to return to the JavaScript environment
-     */
-    private void sendUpdate(JSONObject obj, boolean keepCallback, PluginResult.Status status) {
-        if (callbackContext != null) {
-            PluginResult result = new PluginResult(status, obj);
-            result.setKeepCallback(keepCallback);
-            callbackContext.sendPluginResult(result);
-            if (!keepCallback) {
-                callbackContext = null;
-            }
-        }
-    }
 
     /**
      * Receive File Data from File Chooser
@@ -435,14 +342,177 @@ public class InAppBrowser extends CordovaPlugin {
      * @param intent      the data from android file chooser
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        LOG.d(TAG, "onActivityResult");
+        Log.d(TAG, "onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode);
+
         // If RequestCode or Callback is Invalid
-        if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
+        if (requestCode == 4097 || requestCode == 1900) {
+            cordova.setActivityResultCallback(this);
+            googleFitUtil.onActivityResult(requestCode, resultCode, intent);
+
+        } else if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
             super.onActivityResult(requestCode, resultCode, intent);
             return;
         }
-        mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+        if (mUploadCallback != null) {
+            mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+        }
         mUploadCallback = null;
+    }
+
+    /**
+     * This get called from the webview when user taps on [Connect To Google Fit]
+     */
+    @Override
+    public void askForPermissions() {
+        if (dailyDataSynced) {
+            return;
+        }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
+        } else {
+            googleFitUtil.askForGoogleFitPermission();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults)
+            throws JSONException {
+
+        Log.d("mytag", "onRequestPermissionResult called");
+
+
+        for (int r : grantResults) {
+            if (r == PackageManager.PERMISSION_DENIED) {
+                // this.callbackContext.sendPluginResult(new
+                // PluginResult(PluginResult.Status.ERROR, "Permission Denied"));
+                return;
+            }
+        }
+
+        switch (requestCode) {
+            case ACTIVITY_RECOGNITION_REQUEST_CODE:
+                Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted");
+                cordova.setActivityResultCallback(this);
+                googleFitUtil.askForGoogleFitPermission();
+                break;
+            case LOCATION_PERMISSION_REQUEST_CODE:
+                break;
+        }
+    }
+
+    /**
+     * 1A
+     * This get called after user has granted all the fitness permission
+     */
+
+    @Override
+    public void onFitnessPermissionGranted() {
+        Log.d(TAG, "onFitnessPermissionGranted() called");
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                googleFitUtil.fetchDataFromFit();
+            }
+        });
+    }
+
+    /**
+     * 1B
+     * This is used to load the Daily Fitness Data into the Home Tab webView.
+     */
+
+    @Override
+    public void loadDailyFitnessData(long steps, long sleep) {
+        String finalString = "window.updateFitnessPermissions(true," + steps + "," +
+                sleep + ")";
+
+        inAppWebView.evaluateJavascript(
+                finalString,
+                null);
+        dailyDataSynced = true;
+    }
+
+
+    /**
+     * 2A
+     * This get used for requesting data that are to be shown in detailed graph
+     */
+
+    @Override
+    public void requestActivityData(String type, String frequency, long timestamp) {
+        Log.d(TAG, "requestActivityData() called.");
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (type != null && frequency != null) {
+                    googleFitUtil.getActivityData(type, frequency, timestamp);
+                }
+            }
+        });
+    }
+
+    /**
+     * 2B
+     * This get called when google fit return the detailed graph data that was
+     * requested previously
+     */
+
+    @Override
+    public void loadGraphData(String url) {
+        Log.d("mytag", "detailed graph data: " + url);
+        inAppWebView.evaluateJavascript(
+                url,
+                null);
+
+    }
+
+
+    @Override
+    public void syncDataWithServer(String baseUrl, String authToken, long googleFitLastSync, long gfHourlyLastSync) {
+        if (!syncDataWithServer) {
+            Log.d(TAG, "syncDataWithServer() called");
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    googleFitUtil.sendDataToServer(baseUrl + "/", authToken, googleFitLastSync, gfHourlyLastSync);
+                    syncDataWithServer = true;
+                }
+            });
+        }
+    }
+
+    @Override
+    public void askForLocationPermission() {
+        if (!cordova.hasPermission(LOCATION_PERMISSION)) {
+            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
+        }
+    }
+
+    @Override
+    public void onFitnessPermissionCancelled() {
+        Log.d("mytag", "onFitnessPermissionCancelled()");
+    }
+
+    @Override
+    public void onFitnessPermissionDenied() {
+        Log.d("mytag", "onFitnessPermissionDenied()");
+    }
+
+
+    @Override
+    public void setDailyFitnessDataJSON(String s) {
+        // not required
+    }
+
+    @Override
+    public void setHourlyFitnessDataJSON(String s) {
+        // not required
+    }
+
+    @Override
+    public void closeVisitPWA() {
+        closeDialog();
     }
 
     /**

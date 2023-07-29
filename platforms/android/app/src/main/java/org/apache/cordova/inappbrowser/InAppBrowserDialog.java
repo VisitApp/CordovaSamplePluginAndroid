@@ -21,9 +21,6 @@ package org.apache.cordova.inappbrowser;
 import android.app.Dialog;
 import android.content.Context;
 
-/**
- * Created by Oliver on 22/11/2013.
- */
 public class InAppBrowserDialog extends Dialog {
     Context context;
     InAppBrowser inAppBrowser = null;
