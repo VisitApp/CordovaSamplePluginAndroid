@@ -23,14 +23,6 @@
     "is_top_level": true,
     "variables": {}
   },
-  "com.mwj.cordova.androidvideoplayer": {
-    "source": {
-      "type": "registry",
-      "id": "https://github.com/waqasjamil/cordova-plugin-videoplayer.git"
-    },
-    "is_top_level": true,
-    "variables": {}
-  },
   "info.android.plugin.fitness": {
     "source": {
       "type": "local",
