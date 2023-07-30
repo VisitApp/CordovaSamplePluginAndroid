@@ -126,7 +126,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     inAppWebView.setDownloadListener(new DownloadListener() {
                         @Override
                         public void onDownloadStart(String url, String userAgent, String contentDisposition,
-                                String mimetype, long contentLength) {
+                                                    String mimetype, long contentLength) {
                             try {
                                 Uri uri = Uri.parse(url);
                                 inAppWebView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
@@ -138,7 +138,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                     inAppWebView.setWebChromeClient(new WebChromeClient() {
                         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
-                                WebChromeClient.FileChooserParams fileChooserParams) {
+                                                         WebChromeClient.FileChooserParams fileChooserParams) {
                             LOG.d(TAG, "File Chooser 5.0+");
                             // If callback exists, finish it.
                             if (mUploadCallback != null) {
@@ -159,7 +159,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                         @Override
                         public void onGeolocationPermissionsShowPrompt(String origin,
-                                GeolocationPermissions.Callback callback) {
+                                                                       GeolocationPermissions.Callback callback) {
                             super.onGeolocationPermissionsShowPrompt(origin, callback);
                             callback.invoke(origin, true, false);
                         }
@@ -312,21 +312,28 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
      * @param intent      the data from android file chooser
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        Log.d(TAG, "onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode);
+        Log.d(TAG, "CordavaFitnessPlugin onActivityResult called. requestCode: " + requestCode + " resultCode: " + resultCode);
 
         // If RequestCode or Callback is Invalid
-        if (requestCode == 4097 || requestCode == 1900) {
-            cordova.setActivityResultCallback(this);
-            googleFitUtil.onActivityResult(requestCode, resultCode, intent);
 
-        } else if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
-            super.onActivityResult(requestCode, resultCode, intent);
-            return;
+
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == 4097 || requestCode == 1900) {
+                googleFitUtil.onActivityResult(requestCode, resultCode, intent);
+                cordova.setActivityResultCallback(this);
+
+            } else if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
+                super.onActivityResult(requestCode, resultCode, intent);
+                return;
+            }
+            if (mUploadCallback != null) {
+                mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+            }
+            mUploadCallback = null;
+        } else {
+            cordova.setActivityResultCallback(null);
         }
-        if (mUploadCallback != null) {
-            mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
-        }
-        mUploadCallback = null;
+
     }
 
     /**
@@ -338,8 +345,11 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             return;
         }
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[] { ACTIVITY_RECOGNITION });
+            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
         } else {
+            if (!googleFitUtil.getStepsCounter().hasAccess()) {
+                cordova.setActivityResultCallback(this);
+            }
             googleFitUtil.askForGoogleFitPermission();
         }
     }
@@ -361,13 +371,18 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         switch (requestCode) {
             case ACTIVITY_RECOGNITION_REQUEST_CODE:
                 Log.d(TAG, "ACTIVITY_RECOGNITION_REQUEST_CODE permission granted");
-                cordova.setActivityResultCallback(this);
+                if (!googleFitUtil.getStepsCounter().hasAccess()) {
+                    cordova.setActivityResultCallback(this);
+                }
+
                 googleFitUtil.askForGoogleFitPermission();
+
                 break;
             case LOCATION_PERMISSION_REQUEST_CODE:
                 break;
         }
     }
+
 
     /**
      * 1A
@@ -377,6 +392,8 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     @Override
     public void onFitnessPermissionGranted() {
         Log.d(TAG, "onFitnessPermissionGranted() called");
+
+        cordova.setActivityResultCallback(null);
 
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -452,17 +469,21 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     @Override
     public void askForLocationPermission() {
         if (!cordova.hasPermission(LOCATION_PERMISSION)) {
-            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[] { LOCATION_PERMISSION });
+            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
         }
     }
 
     @Override
     public void onFitnessPermissionCancelled() {
+        cordova.setActivityResultCallback(null);
+
         Log.d("mytag", "onFitnessPermissionCancelled()");
     }
 
     @Override
     public void onFitnessPermissionDenied() {
+        cordova.setActivityResultCallback(null);
+
         Log.d("mytag", "onFitnessPermissionDenied()");
     }
 
@@ -597,9 +618,9 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
          * onPageStarted fires the LOAD_START_EVENT
          *
          * @param view
-         * 
+         *
          * @param url
-         * 
+         *
          * @param favicon
          */
         @Override
