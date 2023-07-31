@@ -43,7 +43,7 @@ function onDeviceReady() {
 }
 
 function loadVisitURL(directMagicLink, firebase_default_client_id) {
-  //  console.log("loadVisitURL called");
+  console.log("loadVisitURL called");
 
   cordova.exec(
     function (winParam) {
@@ -59,6 +59,13 @@ function loadVisitURL(directMagicLink, firebase_default_client_id) {
       firebase_default_client_id, //firebase default_client_id (should change based on the build type)
     ]
   );
+
+  // let url = "https://star-health.getvisitapp.xyz/?mluib7c=BXQqShdC";
+  // let ref = cordova.InAppBrowser.open(
+  //   url,
+  //   "_blank",
+  //   "location=no,hidden=no,hidenavigationbuttons=no,hardwareback=yes,fullscreen=yes"
+  // );
 }
 
 function playVideo() {

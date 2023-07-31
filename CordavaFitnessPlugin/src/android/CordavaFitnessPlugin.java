@@ -181,7 +181,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     // Enable Thirdparty Cookies
                     CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
 
-                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, true);
+                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, false);
                     inAppWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
@@ -317,22 +317,23 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
         // If RequestCode or Callback is Invalid
 
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 4097 || requestCode == 1900) {
+        if (requestCode == 4097 || requestCode == 1900) {
+            if (resultCode == Activity.RESULT_OK) {
                 googleFitUtil.onActivityResult(requestCode, resultCode, intent);
                 cordova.setActivityResultCallback(this);
-
-            } else if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
-                super.onActivityResult(requestCode, resultCode, intent);
-                return;
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                cordova.setActivityResultCallback(null);
             }
-            if (mUploadCallback != null) {
-                mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
-            }
-            mUploadCallback = null;
-        } else {
-            cordova.setActivityResultCallback(null);
         }
+
+        if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
+            super.onActivityResult(requestCode, resultCode, intent);
+            return;
+        }
+        if (mUploadCallback != null) {
+            mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+        }
+        mUploadCallback = null;
 
     }
 
