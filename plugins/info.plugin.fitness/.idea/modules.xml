@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CordavaFitnessPlugin.iml" filepath="$PROJECT_DIR$/.idea/CordavaFitnessPlugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CordovaFitnessPlugin.iml" filepath="$PROJECT_DIR$/.idea/CordovaFitnessPlugin.iml" />
     </modules>
   </component>
 </project>
