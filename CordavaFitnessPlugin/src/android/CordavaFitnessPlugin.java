@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Message;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;

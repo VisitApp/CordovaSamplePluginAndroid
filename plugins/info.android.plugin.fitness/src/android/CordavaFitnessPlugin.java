@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Message;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -49,7 +50,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     private ValueCallback<Uri[]> mUploadCallback;
     private final static int FILECHOOSER_REQUESTCODE = 1;
 
-    private CordavaFitnessPlugin.InAppBrowserClient currentClient;
+    private InAppBrowserClient currentClient;
     GoogleFitUtil googleFitUtil;
     Activity activity;
     Context context;
@@ -119,24 +120,39 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
                             WindowManager.LayoutParams.MATCH_PARENT));
 
-                    // 1. set background color
-                    inAppWebView.setBackgroundColor(Color.parseColor("#FFFFFF"));
-
-                    // 2. add downloadlistener
-                    inAppWebView.setDownloadListener(new DownloadListener() {
-                        @Override
-                        public void onDownloadStart(String url, String userAgent, String contentDisposition,
-                                String mimetype, long contentLength) {
-                            try {
-                                Uri uri = Uri.parse(url);
-                                inAppWebView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-
                     inAppWebView.setWebChromeClient(new WebChromeClient() {
+
+                        @Override
+                        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture,
+                                Message resultMsg) {
+                            Log.d("mytag", "InAppChromeClient onCreateWindow");
+
+                            WebView inAppWebView = view;
+                            final WebViewClient webViewClient = new WebViewClient() {
+                                @Override
+                                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                                    inAppWebView.loadUrl(request.getUrl().toString());
+                                    return true;
+                                }
+
+                                @Override
+                                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                    inAppWebView.loadUrl(url);
+                                    return true;
+                                }
+
+                            };
+
+                            final WebView newWebView = new WebView(view.getContext());
+                            newWebView.setWebViewClient(webViewClient);
+
+                            final WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                            transport.setWebView(newWebView);
+                            resultMsg.sendToTarget();
+
+                            return true;
+                        }
+
                         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
                                 WebChromeClient.FileChooserParams fileChooserParams) {
                             LOG.d(TAG, "File Chooser 5.0+");
@@ -165,34 +181,56 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                         }
                     });
 
-                    currentClient = new CordavaFitnessPlugin.InAppBrowserClient(webView);
+                    currentClient = new InAppBrowserClient(CordavaFitnessPlugin.this.webView);
                     inAppWebView.setWebViewClient(currentClient);
+
                     WebSettings settings = inAppWebView.getSettings();
                     settings.setJavaScriptEnabled(true);
                     settings.setJavaScriptCanOpenWindowsAutomatically(true);
                     settings.setBuiltInZoomControls(false);
                     settings.setGeolocationEnabled(true);
-
                     settings.setPluginState(android.webkit.WebSettings.PluginState.ON);
 
                     settings.setMediaPlaybackRequiresUserGesture(false);
                     settings.setDomStorageEnabled(true);
 
-                    // Enable Thirdparty Cookies
-                    CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
+                    // 1. set background color
+                    inAppWebView.setBackgroundColor(Color.parseColor("#FFFFFF"));
 
-                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, true);
-                    inAppWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
-                    googleFitUtil.init();
+                    // // 2. add downloadlistener
+                    inAppWebView.setDownloadListener(new DownloadListener() {
+                        @Override
+                        public void onDownloadStart(String url, String userAgent, String contentDisposition,
+                                String mimetype, long contentLength) {
 
-                    inAppWebView.loadUrl(magicLink);
-                    inAppWebView.getSettings().setLoadWithOverviewMode(true);
+                            Log.d("mytag", "DownloadListener called");
+
+                            try {
+                                Uri uri = Uri.parse(url);
+                                inAppWebView.getContext().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
                     // Multiple Windows set to true to mitigate Chromium security bug.
                     // See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
                     inAppWebView.getSettings().setSupportMultipleWindows(true);
                     inAppWebView.requestFocus();
                     inAppWebView.requestFocusFromTouch();
-                    Log.d("mytag", "Line no: 197");
+
+                    // Enable Thirdparty Cookies
+                    CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
+
+                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, false);
+                    inAppWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
+                    googleFitUtil.init();
+
+                    inAppWebView.loadUrl(magicLink);
+
+                    inAppWebView.getSettings().setLoadWithOverviewMode(true);
+                    inAppWebView.getSettings().setUseWideViewPort(true);
 
                     // Add our webview to our main view/layout
                     RelativeLayout webViewLayout = new RelativeLayout(cordova.getActivity());
@@ -317,22 +355,23 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
         // If RequestCode or Callback is Invalid
 
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 4097 || requestCode == 1900) {
+        if (requestCode == 4097 || requestCode == 1900) {
+            if (resultCode == Activity.RESULT_OK) {
                 googleFitUtil.onActivityResult(requestCode, resultCode, intent);
                 cordova.setActivityResultCallback(this);
-
-            } else if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
-                super.onActivityResult(requestCode, resultCode, intent);
-                return;
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                cordova.setActivityResultCallback(null);
             }
-            if (mUploadCallback != null) {
-                mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
-            }
-            mUploadCallback = null;
-        } else {
-            cordova.setActivityResultCallback(null);
         }
+
+        if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
+            super.onActivityResult(requestCode, resultCode, intent);
+            return;
+        }
+        if (mUploadCallback != null) {
+            mUploadCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+        }
+        mUploadCallback = null;
 
     }
 

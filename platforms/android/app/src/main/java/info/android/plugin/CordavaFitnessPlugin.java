@@ -120,30 +120,28 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
                             WindowManager.LayoutParams.MATCH_PARENT));
 
-
                     inAppWebView.setWebChromeClient(new WebChromeClient() {
 
                         @Override
-                        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                        public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture,
+                                Message resultMsg) {
                             Log.d("mytag", "InAppChromeClient onCreateWindow");
 
                             WebView inAppWebView = view;
-                            final WebViewClient webViewClient =
-                                    new WebViewClient() {
-                                        @Override
-                                        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                                            inAppWebView.loadUrl(request.getUrl().toString());
-                                            return true;
-                                        }
+                            final WebViewClient webViewClient = new WebViewClient() {
+                                @Override
+                                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                                    inAppWebView.loadUrl(request.getUrl().toString());
+                                    return true;
+                                }
 
-                                        @Override
-                                        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                            inAppWebView.loadUrl(url);
-                                            return true;
-                                        }
+                                @Override
+                                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                    inAppWebView.loadUrl(url);
+                                    return true;
+                                }
 
-
-                                    };
+                            };
 
                             final WebView newWebView = new WebView(view.getContext());
                             newWebView.setWebViewClient(webViewClient);
@@ -156,7 +154,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                         }
 
                         public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
-                                                         WebChromeClient.FileChooserParams fileChooserParams) {
+                                WebChromeClient.FileChooserParams fileChooserParams) {
                             LOG.d(TAG, "File Chooser 5.0+");
                             // If callback exists, finish it.
                             if (mUploadCallback != null) {
@@ -177,12 +175,11 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
 
                         @Override
                         public void onGeolocationPermissionsShowPrompt(String origin,
-                                                                       GeolocationPermissions.Callback callback) {
+                                GeolocationPermissions.Callback callback) {
                             super.onGeolocationPermissionsShowPrompt(origin, callback);
                             callback.invoke(origin, true, false);
                         }
                     });
-
 
                     currentClient = new InAppBrowserClient(CordavaFitnessPlugin.this.webView);
                     inAppWebView.setWebViewClient(currentClient);
@@ -197,16 +194,14 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     settings.setMediaPlaybackRequiresUserGesture(false);
                     settings.setDomStorageEnabled(true);
 
-
                     // 1. set background color
                     inAppWebView.setBackgroundColor(Color.parseColor("#FFFFFF"));
 
-
-//                   // 2. add downloadlistener
+                    // // 2. add downloadlistener
                     inAppWebView.setDownloadListener(new DownloadListener() {
                         @Override
                         public void onDownloadStart(String url, String userAgent, String contentDisposition,
-                                                    String mimetype, long contentLength) {
+                                String mimetype, long contentLength) {
 
                             Log.d("mytag", "DownloadListener called");
 
@@ -218,7 +213,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                             }
                         }
                     });
-
 
                     // Multiple Windows set to true to mitigate Chromium security bug.
                     // See: https://bugs.chromium.org/p/chromium/issues/detail?id=1083819
@@ -370,7 +364,6 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             }
         }
 
-
         if (requestCode != FILECHOOSER_REQUESTCODE || mUploadCallback == null) {
             super.onActivityResult(requestCode, resultCode, intent);
             return;
@@ -391,7 +384,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
             return;
         }
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[]{ACTIVITY_RECOGNITION});
+            cordova.requestPermissions(this, ACTIVITY_RECOGNITION_REQUEST_CODE, new String[] { ACTIVITY_RECOGNITION });
         } else {
             if (!googleFitUtil.getStepsCounter().hasAccess()) {
                 cordova.setActivityResultCallback(this);
@@ -514,7 +507,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
     @Override
     public void askForLocationPermission() {
         if (!cordova.hasPermission(LOCATION_PERMISSION)) {
-            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[]{LOCATION_PERMISSION});
+            cordova.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE, new String[] { LOCATION_PERMISSION });
         }
     }
 
