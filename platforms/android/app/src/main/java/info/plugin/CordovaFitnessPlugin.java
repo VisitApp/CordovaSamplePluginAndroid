@@ -1,4 +1,4 @@
-package info.android.plugin;
+package info.plugin;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -40,7 +40,7 @@ import org.json.JSONException;
 /**
  * This class echoes a string called from JavaScript.
  */
-public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener {
+public class CordovaFitnessPlugin extends CordovaPlugin implements GoogleFitStatusListener {
 
     protected static final String TAG = "mytag";
 
@@ -168,7 +168,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                             content.setType("*/*");
 
                             // Run cordova startActivityForResult
-                            cordova.startActivityForResult(CordavaFitnessPlugin.this,
+                            cordova.startActivityForResult(CordovaFitnessPlugin.this,
                                     Intent.createChooser(content, "Select File"), FILECHOOSER_REQUESTCODE);
                             return true;
                         }
@@ -181,7 +181,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                         }
                     });
 
-                    currentClient = new InAppBrowserClient(CordavaFitnessPlugin.this.webView);
+                    currentClient = new InAppBrowserClient(CordovaFitnessPlugin.this.webView);
                     inAppWebView.setWebViewClient(currentClient);
 
                     WebSettings settings = inAppWebView.getSettings();
@@ -223,7 +223,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
                     // Enable Thirdparty Cookies
                     CookieManager.getInstance().setAcceptThirdPartyCookies(inAppWebView, true);
 
-                    googleFitUtil = new GoogleFitUtil(activity, CordavaFitnessPlugin.this, default_client_id, false);
+                    googleFitUtil = new GoogleFitUtil(activity, CordovaFitnessPlugin.this, default_client_id, false);
                     inAppWebView.addJavascriptInterface(googleFitUtil.getWebAppInterface(), "Android");
                     googleFitUtil.init();
 
@@ -338,7 +338,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
         return this.inAppWebView.canGoBack();
     }
 
-    private CordavaFitnessPlugin getInAppBrowser() {
+    private CordovaFitnessPlugin getInAppBrowser() {
         return this;
     }
 
@@ -350,7 +350,7 @@ public class CordavaFitnessPlugin extends CordovaPlugin implements GoogleFitStat
      * @param intent      the data from android file chooser
      */
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        Log.d(TAG, "CordavaFitnessPlugin onActivityResult called. requestCode: " + requestCode + " resultCode: "
+        Log.d(TAG, "CordovaFitnessPlugin onActivityResult called. requestCode: " + requestCode + " resultCode: "
                 + resultCode);
 
         // If RequestCode or Callback is Invalid

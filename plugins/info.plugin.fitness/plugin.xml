@@ -4,13 +4,13 @@
     version="1.0.0"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
 
-    <name>CordavaFitnessPlugin</name>
+    <name>CordovaFitnessPlugin</name>
 
     <js-module
-        name="CordavaFitnessPlugin"
-        src="www/CordavaFitnessPlugin.js">
+        name="CordovaFitnessPlugin"
+        src="www/CordovaFitnessPlugin.js">
 
-        <clobbers target="cordova.plugins.CordavaFitnessPlugin" />
+        <clobbers target="cordova.plugins.CordovaFitnessPlugin" />
     </js-module>
 
     <platform name="android">
@@ -19,10 +19,10 @@
             parent="/*"
             target="res/xml/config.xml">
 
-            <feature name="CordavaFitnessPlugin">
+            <feature name="CordovaFitnessPlugin">
                 <param
                     name="android-package"
-                    value="info.android.plugin.CordavaFitnessPlugin" />
+                    value="info.plugin.CordovaFitnessPlugin" />
             </feature>
         </config-file>
 
@@ -33,12 +33,12 @@
             target="AndroidManifest.xml"></config-file>
 
         <source-file
-            src="src/android/CordavaFitnessPlugin.java"
-            target-dir="src/info/android/plugin" />
+            src="src/android/CordovaFitnessPlugin.java"
+            target-dir="src/info/plugin" />
 
         <source-file
             src="src/android/CordovaFitnessDialog.java"
-            target-dir="src/info/android/plugin" />
+            target-dir="src/info/plugin" />
 
     </platform>
 </plugin>

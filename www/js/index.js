@@ -52,7 +52,7 @@ function loadVisitURL(directMagicLink, firebase_default_client_id) {
     function (error) {
       console.log(error);
     },
-    "CordavaFitnessPlugin", //plugin class name
+    "CordovaFitnessPlugin", //plugin class name
     "open", //plugin method
     [
       directMagicLink,

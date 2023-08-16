@@ -16,21 +16,21 @@
        specific language governing permissions and limitations
        under the License.
 */
-package info.android.plugin;
+package info.plugin;
 
 import android.app.Dialog;
 import android.content.Context;
 
 public class CordovaFitnessDialog extends Dialog {
     Context context;
-    CordavaFitnessPlugin inAppBrowser = null;
+    CordovaFitnessPlugin inAppBrowser = null;
 
     public CordovaFitnessDialog(Context context, int theme) {
         super(context, theme);
         this.context = context;
     }
 
-    public void setInAppBrowser(CordavaFitnessPlugin browser) {
+    public void setInAppBrowser(CordovaFitnessPlugin browser) {
         this.inAppBrowser = browser;
     }
 

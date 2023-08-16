@@ -17,11 +17,11 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       ]
     },
     {
-      "id": "info.plugin.fitness.CordavaFitnessPlugin",
-      "file": "plugins/info.plugin.fitness/www/CordavaFitnessPlugin.js",
+      "id": "info.plugin.fitness.CordovaFitnessPlugin",
+      "file": "plugins/info.plugin.fitness/www/CordovaFitnessPlugin.js",
       "pluginId": "info.plugin.fitness",
       "clobbers": [
-        "cordova.plugins.CordavaFitnessPlugin"
+        "cordova.plugins.CordovaFitnessPlugin"
       ]
     }
   ];

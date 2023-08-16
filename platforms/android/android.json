@@ -21,7 +21,7 @@
               "count": 1
             },
             {
-              "xml": "<feature name=\"CordavaFitnessPlugin\"><param name=\"android-package\" value=\"info.android.plugin.CordavaFitnessPlugin\" /></feature>",
+              "xml": "<feature name=\"CordovaFitnessPlugin\"><param name=\"android-package\" value=\"info.plugin.CordovaFitnessPlugin\" /></feature>",
               "count": 1
             }
           ]
@@ -64,11 +64,11 @@
       ]
     },
     {
-      "id": "info.plugin.fitness.CordavaFitnessPlugin",
-      "file": "plugins/info.plugin.fitness/www/CordavaFitnessPlugin.js",
+      "id": "info.plugin.fitness.CordovaFitnessPlugin",
+      "file": "plugins/info.plugin.fitness/www/CordovaFitnessPlugin.js",
       "pluginId": "info.plugin.fitness",
       "clobbers": [
-        "cordova.plugins.CordavaFitnessPlugin"
+        "cordova.plugins.CordovaFitnessPlugin"
       ]
     }
   ],
