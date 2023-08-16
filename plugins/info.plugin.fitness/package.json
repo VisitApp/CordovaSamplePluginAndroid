@@ -1,19 +1,17 @@
 {
   "name": "info.plugin.fitness",
-  "version": "1.0.2",
-  "description": "This is used to get Google Fit/Apple Health data.",
+  "version": "1.0.0",
+  "description": "This is used to get google fit data.",
   "cordova": {
     "id": "info.plugin.fitness",
     "platforms": [
-      "android",
-      "ios"
+      "android"
     ]
   },
   "keywords": [
     "ecosystem:cordova",
-    "cordova-android",
-    "cordova-ios"
+    "cordova-android"
   ],
-  "author": "Chinmay&Yash",
+  "author": "Chinmay",
   "license": "ISC"
 }
