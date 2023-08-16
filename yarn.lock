@@ -288,7 +288,7 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-"info.android.plugin.fitness@file:CordavaFitnessPlugin":
+"info.plugin.fitness@file:CordavaFitnessPlugin":
   version "1.0.0"
   resolved "file:CordavaFitnessPlugin"
 

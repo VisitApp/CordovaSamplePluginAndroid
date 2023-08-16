@@ -13,7 +13,7 @@
     "cordova-plugin-statusbar": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     },
-    "info.android.plugin.fitness": {
+    "info.plugin.fitness": {
       "PACKAGE_NAME": "io.cordova.fitnessappcordova"
     }
   },

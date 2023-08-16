@@ -1,9 +1,9 @@
 {
-  "name": "info.android.plugin.fitness",
+  "name": "info.plugin.fitness",
   "version": "1.0.0",
   "description": "This is used to get google fit data.",
   "cordova": {
-    "id": "info.android.plugin.fitness",
+    "id": "info.plugin.fitness",
     "platforms": [
       "android"
     ]

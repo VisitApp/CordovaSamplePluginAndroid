@@ -17,9 +17,9 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       ]
     },
     {
-      "id": "info.android.plugin.fitness.CordavaFitnessPlugin",
-      "file": "plugins/info.android.plugin.fitness/www/CordavaFitnessPlugin.js",
-      "pluginId": "info.android.plugin.fitness",
+      "id": "info.plugin.fitness.CordavaFitnessPlugin",
+      "file": "plugins/info.plugin.fitness/www/CordavaFitnessPlugin.js",
+      "pluginId": "info.plugin.fitness",
       "clobbers": [
         "cordova.plugins.CordavaFitnessPlugin"
       ]
@@ -28,6 +28,6 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
   module.exports.metadata = {
     "cordova-plugin-splashscreen": "6.0.0",
     "cordova-plugin-statusbar": "3.0.0",
-    "info.android.plugin.fitness": "1.0.0"
+    "info.plugin.fitness": "1.0.0"
   };
 });

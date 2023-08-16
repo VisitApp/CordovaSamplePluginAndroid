@@ -23,10 +23,10 @@
     "is_top_level": true,
     "variables": {}
   },
-  "info.android.plugin.fitness": {
+  "info.plugin.fitness": {
     "source": {
       "type": "local",
-      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.android.plugin.fitness"
+      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.plugin.fitness"
     },
     "is_top_level": true,
     "variables": {}
