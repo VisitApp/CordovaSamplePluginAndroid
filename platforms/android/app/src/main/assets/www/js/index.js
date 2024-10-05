@@ -14,7 +14,7 @@ function onDeviceReady() {
       console.log("loadVisitApp called");
 
       loadVisitURL(
-        "https://itgi.getvisitapp.xyz/sso?userParams=kdRDkaQXGejyMZrFaX%2FMraWZoXzqXQr3u6HEsC%2BMuX4OOZSjH%2BKOYbC9NKcQTKVkboq2QhRpDLq4LxhpJC%2Frr4%2Bo5rQojgwC7JzKIR4MJr6mrF%2BKxwSm2jG7HrPRod7Z%2Bya8DCcyz%2F18aMfFxX7bWfH7uXKds3E%2FExtEMcZAJhKqIJ%2FUypD0zPbRn1IlgHJIqXDBYYOLb5pHe1Pn85LQ2TOEj8UE5zrJzNIxbZFs0e8xVarmQYnKrDUWH%2BmaZ4dQr1hLzhqk0svtJhJifvzvjdwWisgQz8QJ%2Bv7hAmALQdZhWKlu%2FWAwz1XS7peecPc4E9T8y2ZwwhQJeBoZ4YS7dI4xcigz6U8t&clientId=itgi-sdk-012",
+        "https://itgi.getvisitapp.net/sso?userParams=kdRDkaQXGejyMZrFaX%2FMraWZoXzqXQr3u6HEsC%2BMuX4OOZSjH%2BKOYbC9NKcQTKVkboq2QhRpDLq4LxhpJC%2Frr4%2Bo5rQojgwC7JzKIR4MJr6mrF%2BKxwSm2jG7HrPRod7Z%2Bya8DCcyz%2F18aMfFxX7bWfH7uXKds3E%2FehfDmesVXuBH6acG%2B5TL8ksXHJmKBWhCQzKCJmhC5%2FtoObXYlLqhL3MEwcE7XrMNQywpgwvUzSNVsNfYuXD3Wd6Fq1ip8zAhHRDSptO4i3QrlsbBQZdlYSOi3LOlpglVIAkr1DCZENLsKzxzKS4vTY9HBKP%2B1AdO0Vv9JOlrCgm2maqNsIVkpQXsm1SZ4iWjIlmMr98fO31gnzIVC7F%2B8rC4aDWGQm%2FM&clientId=itgi-sdk-012",
         "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com"
       );
     });

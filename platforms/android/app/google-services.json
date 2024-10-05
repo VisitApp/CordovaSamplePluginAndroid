@@ -14,11 +14,48 @@
       },
       "oauth_client": [
         {
-          "client_id": "967914547335-1tl4rmjqv49sm0un30shu2ao4vkl9u81.apps.googleusercontent.com",
+          "client_id": "967914547335-mjhqhat5gfpmi2ijlgumvnkfljgf7e96.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "io.cordova.fitnessappcordova",
-            "certificate_hash": "ee945254a69645711ce5afb230bc968e311c7522"
+            "certificate_hash": "bb79b8aad066ae052abfc6d035ff25bab4c6b946"
+          }
+        },
+        {
+          "client_id": "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQbV-RGWC5YTomYgHxNzHyqWw13IYj9CU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "967914547335-g2ntga70t1i7b19ti91gcubb7agm7rje.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:967914547335:android:ca884bb507d8458b50f022",
+        "android_client_info": {
+          "package_name": "io.ionic.starter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "967914547335-ehcroufajrkpjkf2rgiuf2eso7luho0b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.ionic.starter",
+            "certificate_hash": "5f7fc36fcb31ff47a12f3af1aad6f29d58eba6ef"
           }
         },
         {
