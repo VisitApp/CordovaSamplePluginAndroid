@@ -26,7 +26,7 @@
   "info.plugin.fitness": {
     "source": {
       "type": "local",
-      "path": "/Users/visithealth/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.plugin.fitness"
+      "path": "/Users/chinmaydash/Documents/CordovaProjects/CordovaSamplePluginAndroid/node_modules/info.plugin.fitness"
     },
     "is_top_level": true,
     "variables": {}
