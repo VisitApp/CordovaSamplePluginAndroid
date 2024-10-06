@@ -3,6 +3,8 @@ package info.plugin;
 import android.content.Intent;
 import android.util.Log;
 
+import com.getvisitapp.google_fit.CordovaFitnessActivity;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaArgs;
 import org.apache.cordova.CordovaPlugin;
@@ -11,7 +13,7 @@ import org.json.JSONException;
 /**
  * This class echoes a string called from JavaScript.
  */
-public class CordovaFitnessPlugin extends CordovaPlugin{
+public class CordovaFitnessPlugin extends CordovaPlugin {
 
     protected static final String TAG = "mytag";
 
@@ -41,10 +43,9 @@ public class CordovaFitnessPlugin extends CordovaPlugin{
             Log.d(TAG, "magicLink: " + magicLink);
             Log.d(TAG, "default_client_id: " + default_client_id);
 
-
             Intent intent = new Intent(cordova.getActivity(), CordovaFitnessActivity.class);
-            intent.putExtra("ssoLink",magicLink);
-            intent.putExtra("default_client_id",default_client_id);
+            intent.putExtra("ssoLink", magicLink);
+            intent.putExtra("default_client_id", default_client_id);
             if (this.cordova != null) {
                 this.cordova.startActivityForResult((CordovaPlugin) this, intent, 0);
             }

@@ -29,12 +29,7 @@
       },
       "AndroidManifest.xml": {
         "parents": {
-          "/manifest/application": [
-            {
-              "xml": "<activity android:exported=\"false\" android:launchMode=\"singleTop\" android:name=\"info.plugin.CordovaFitnessActivity\" android:theme=\"@style/Theme.AppCompat.Light.NoActionBar\" />",
-              "count": 1
-            }
-          ],
+          "/manifest/application": [],
           "/*": [
             {
               "xml": "<uses-permission android:name=\"android.permission.INTERNET\" />",

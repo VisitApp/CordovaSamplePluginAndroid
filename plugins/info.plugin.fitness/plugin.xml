@@ -39,32 +39,9 @@
 
         </config-file>
 
-        <config-file
-            parent="/manifest/application"
-            target="AndroidManifest.xml">
-
-            <activity
-                android:name="info.plugin.CordovaFitnessActivity"
-                android:exported="false"
-                android:launchMode="singleTop"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        </config-file>
-
         <source-file
             src="src/android/CordovaFitnessPlugin.java"
             target-dir="src/info/plugin" />
-
-        <source-file
-            src="src/android/FakeR.java"
-            target-dir="src/info/plugin" />
-
-        <source-file
-            src="src/android/CordovaFitnessActivity.java"
-            target-dir="src/info/plugin" />
-
-        <resource-file
-            src="src/android/activity_cordova_fitness.xml"
-            target="res/layout/activity_cordova_fitness.xml" />
 
         <framework src="com.google.android.gms:play-services-fitness:21.1.0" />
         <framework src="com.google.android.gms:play-services-auth:20.6.0" />
