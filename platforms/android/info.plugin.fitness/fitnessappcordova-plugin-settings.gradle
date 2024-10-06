@@ -1,9 +1,0 @@
-repositories{    
-  flatDir {
-      dirs 'src/main/libs'
-   }
-}
-
-dependencies {
-   implementation(name:'google_fit-debug', ext:'aar')
-}
