@@ -52,6 +52,8 @@
         <framework src="com.jakewharton.timber:timber:5.0.1" />
         <framework src="androidx.constraintlayout:constraintlayout:2.1.1" />
         <framework src="androidx.core:core-ktx:1.13.1" />
+        <framework src="com.google.android.material:material:1.12.0" />
+
 
         <resource-file src="deps/google_fit-debug.aar" target="libs/google_fit-debug.aar" />
 
